@@ -65,18 +65,33 @@ A `POST /api/office-to-pdf` végpont (`src/app/api/office-to-pdf/route.ts`, moto
 
 | Motor | Mikor | Megjegyzés |
 | --- | --- | --- |
-| [Gotenberg](https://gotenberg.dev) | ha be van állítva a `GOTENBERG_URL` (pl. `http://gotenberg:3000`) | éles üzemre ajánlott: `docker run -p 3000:3000 gotenberg/gotenberg:8` |
+| [Gotenberg](https://gotenberg.dev) | ha be van állítva a `GOTENBERG_URL` (Vercelen automatikusan, lásd lent) | saját szerveren: `docker run -p 3000:3000 gotenberg/gotenberg:8-libreoffice` + `GOTENBERG_URL=http://localhost:3000` |
 | LibreOffice | ha a `soffice` elérhető (`SOFFICE_PATH`, vagy a szokásos telepítési helyek) | pl. Docker-képbe: `apt-get install libreoffice-writer libreoffice-calc libreoffice-impress` |
 | Microsoft Word / Excel / PowerPoint | Windowson, ha telepítve van (alkalmazásonként) | fejlesztéshez; COM-automatizálás PowerShellből, makrók tiltva. A PowerPointból csak egy példány fut: ha a felhasználónak nyitva van, a konverzió nem zárja be |
 
-- Legfeljebb 50 MB-os fájl, 120 s időkorlát; a helyi (LibreOffice/Office) átalakítások sorban futnak, 8-nál több várakozónál a szerver 503-at ad.
+- Legfeljebb 50 MB-os fájl (Vercelen 4,4 MB), 120 s időkorlát; a helyi (LibreOffice/Office) átalakítások sorban futnak, 8-nál több várakozónál a szerver 503-at ad.
 - A feltöltött fájl csak egy ideiglenes mappában él, amíg a PDF el nem készül, utána törlődik.
 - Jelszóval védett dokumentumot nem alakít át (érthető hibaüzenetet ad).
-- **Vercelen nincs irodai program**: ott a Gotenberget külön kell futtatni (`GOTENBERG_URL`), különben az Office-fájlok kártyáján hibaüzenet jelenik meg.
+
+### Vercel: Gotenberg belső szolgáltatásként
+
+A Vercel függvényeiben nincs irodai program, ezért a `vercel.json` [Vercel Services](https://vercel.com/docs/services)-szel (béta) két szolgáltatást futtat egy projektben:
+
+- `web` – a Next.js-alkalmazás (a repó gyökere), minden nyilvános kérés ide megy;
+- `gotenberg` – a `gotenberg/Dockerfile.vercel` konténere (`gotenberg/gotenberg:8.37-libreoffice`, Chromium nélkül). **Nincs nyilvános útvonala**, csak a `web` éri el belső kapcsolaton (binding): a Vercel a címét futásidőben a `GOTENBERG_URL` változóba teszi, így semmit nem kell kézzel beállítani.
+
+Tudnivalók:
+
+- A Services és a konténeres függvények (Container Images) bétában vannak; ha a projektben/csapatban nincsenek bekapcsolva, a deploy hibát ad – ilyenkor a Vercel kezelőfelületén kell hozzáférést kérni.
+- A Vercel-függvények kérése legfeljebb 4,5 MB lehet, ezért a feltölthető Office-fájl 4,4 MB. A PDF-et a végpont streamelve adja vissza, arra ez a korlát nem vonatkozik.
+- 5 perc tétlenség után a konténer leáll; az első konvertálás utána lassabb (hidegindítás, néhány másodperc).
+- A LibreOffice a Calibri/Cambria helyett méretazonos betűket (Carlito/Caladea) használ, így a tördelés megegyezik a Wordével.
 
 ## Projektstruktúra
 
 ```
+vercel.json               Vercel Services: Next.js + belső Gotenberg
+gotenberg/                a Gotenberg-szolgáltatás konténere (Dockerfile.vercel)
 src/
   app/                    oldalak (/, /pdf-bol-kep), layout, favicon, OG-kép
     api/office-to-pdf/    Office → PDF végpont

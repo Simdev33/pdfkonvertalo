@@ -17,6 +17,8 @@ async function upload(file: File) {
   }
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    // A 413 without our JSON comes from the hosting platform's own body limit.
+    if (!data?.error && response.status === 413) throw new Error("A fájl túl nagy ahhoz, hogy a szerver átalakítsa.");
     throw new Error(data?.error ?? `A szerver hibát jelzett (${response.status}).`);
   }
   return response.blob();

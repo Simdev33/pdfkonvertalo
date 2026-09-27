@@ -76,7 +76,7 @@ const FAQ = [
   },
   {
     q: "Van méret- vagy darabkorlát?",
-    a: "Nincs mesterséges korlát, a géped memóriája szab határt. Több száz fotó vagy több száz oldalas PDF is gond nélkül feldolgozható. A Word-, Excel- és PowerPoint-fájlok egyenként legfeljebb 50 MB-osak lehetnek.",
+    a: "Nincs mesterséges korlát, a géped memóriája szab határt. Több száz fotó vagy több száz oldalas PDF is gond nélkül feldolgozható. A Word-, Excel- és PowerPoint-fájlok egyenként legfeljebb 4,4 MB-osak lehetnek.",
   },
 ];
 

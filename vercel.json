@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": "./",
+      "framework": "nextjs",
+      "bindings": [{ "type": "service", "service": "gotenberg", "format": "url", "env": "GOTENBERG_URL" }]
+    },
+    "gotenberg": {
+      "root": "gotenberg/",
+      "entrypoint": "Dockerfile.vercel"
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": { "service": "web" } }]
+}

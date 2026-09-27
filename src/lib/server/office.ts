@@ -2,7 +2,8 @@
  * Office documents (Word, Excel, PowerPoint) → PDF on the server. A browser
  * cannot lay these out the way Office does, so a real office suite does the
  * work, in this order:
- *  1. Gotenberg (LibreOffice in a container) when GOTENBERG_URL is set;
+ *  1. Gotenberg (LibreOffice in a container) when GOTENBERG_URL is set – on
+ *     Vercel this is the internal service from /gotenberg (see vercel.json);
  *  2. a local LibreOffice (SOFFICE_PATH or the usual install locations);
  *  3. on Windows, Microsoft Word / Excel / PowerPoint through COM automation.
  * Uploaded files only live in a temporary folder until the PDF is ready.
@@ -107,22 +108,23 @@ function serial<T>(job: () => Promise<T>): Promise<T> {
 
 /* -------------------------------- converters ------------------------------ */
 
-async function viaGotenberg(url: string, bytes: Uint8Array, ext: string) {
+/** Streams the PDF back: a streamed response is exempt from Vercel's 4.5 MB response limit. */
+async function viaGotenberg(base: string, bytes: Uint8Array, ext: string) {
   const form = new FormData();
   form.append("files", new Blob([bytes as Uint8Array<ArrayBuffer>]), `dokumentum.${ext}`);
-  const response = await fetch(new URL("/forms/libreoffice/convert", url), {
-    method: "POST",
-    body: form,
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  }).catch((error: unknown) => {
+  // Relative to the base: a Vercel service binding URL may carry a path prefix.
+  const url = new URL("forms/libreoffice/convert", base.endsWith("/") ? base : `${base}/`);
+  const response = await fetch(url, { method: "POST", body: form, signal: AbortSignal.timeout(TIMEOUT_MS) }).catch((error: unknown) => {
     console.error("[office] Gotenberg unreachable", error);
     throw new OfficeError("A dokumentum-átalakító szolgáltatás most nem érhető el.", 503);
   });
-  if (!response.ok) {
-    console.error("[office] Gotenberg", response.status, await response.text().catch(() => ""));
+  if (!response.ok || !response.body) {
+    const detail = await response.text().catch(() => "");
+    if (/password/i.test(detail)) throw new OfficeError(PASSWORD_MESSAGE);
+    console.error("[office] Gotenberg", response.status, detail);
     throw new OfficeError(FAILED_MESSAGE);
   }
-  return new Uint8Array(await response.arrayBuffer());
+  return response.body;
 }
 
 function viaLibreOffice(soffice: string, input: string, dir: string) {
@@ -226,7 +228,7 @@ function isEncryptedPackage(bytes: Uint8Array) {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).includes(utf16("EncryptedPackage"));
 }
 
-export async function officeToPdf(bytes: Uint8Array, format: OfficeFormat): Promise<Uint8Array> {
+export async function officeToPdf(bytes: Uint8Array, format: OfficeFormat): Promise<ReadableStream<Uint8Array> | Uint8Array> {
   const { app, container } = OFFICE_FORMATS[format];
   if (container === "ooxml" && isEncryptedPackage(bytes)) throw new OfficeError(PASSWORD_MESSAGE);
 

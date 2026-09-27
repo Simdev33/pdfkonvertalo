@@ -1,0 +1,11 @@
+# Office → PDF converter: Gotenberg with LibreOffice only (no Chromium).
+# Runs as an internal Vercel service next to the Next.js app, which reaches it
+# through the GOTENBERG_URL binding declared in /vercel.json. It has no public
+# route, so it needs no authentication.
+FROM gotenberg/gotenberg:8.37-libreoffice
+
+# Vercel sends traffic to $PORT (80 unless the project sets it); a port below
+# 1024 can only be opened by root, as in Vercel's own container examples.
+USER root
+
+CMD ["sh", "-c", "exec gotenberg --api-port=\"${PORT:-80}\" --api-timeout=120s"]

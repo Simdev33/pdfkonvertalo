@@ -3,18 +3,20 @@ import { OfficeError, officeToPdf } from "@/lib/server/office";
 
 export const maxDuration = 300;
 
-const MAX_BYTES = 50 * 1024 * 1024;
+// Vercel Functions accept at most 4.5 MB request bodies (multipart overhead included).
+const [MAX_BYTES, MAX_LABEL] = process.env.VERCEL ? [4.4 * 1024 * 1024, "4,4 MB"] : [50 * 1024 * 1024, "50 MB"];
+const TOO_LARGE = `A fájl legfeljebb ${MAX_LABEL} lehet.`;
 
 const fail = (error: string, status: number) => Response.json({ error }, { status, headers: { "Cache-Control": "no-store" } });
 
 /** Office document in (multipart field "file"), PDF out. */
 export async function POST(request: Request) {
-  if (Number(request.headers.get("content-length")) > MAX_BYTES + 64 * 1024) return fail("A fájl legfeljebb 50 MB lehet.", 413);
+  if (Number(request.headers.get("content-length")) > MAX_BYTES + 64 * 1024) return fail(TOO_LARGE, 413);
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
   if (!(file instanceof File) || file.size === 0) return fail("Nem érkezett fájl.", 400);
-  if (file.size > MAX_BYTES) return fail("A fájl legfeljebb 50 MB lehet.", 413);
+  if (file.size > MAX_BYTES) return fail(TOO_LARGE, 413);
 
   const format = extensionOf(file.name);
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -24,7 +26,7 @@ export async function POST(request: Request) {
 
   try {
     const pdf = await officeToPdf(bytes, format);
-    return new Response(pdf as Uint8Array<ArrayBuffer>, {
+    return new Response(pdf as ReadableStream<Uint8Array> | Uint8Array<ArrayBuffer>, {
       headers: { "Content-Type": "application/pdf", "Cache-Control": "no-store" },
     });
   } catch (error) {
