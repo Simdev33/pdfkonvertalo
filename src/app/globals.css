@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+  --bg: #f6f6f8;
+  --surface: #ffffff;
+  --surface-2: #f2f3f5;
+  --surface-3: #e8e9ed;
+  --border: #e4e5ea;
+  --border-strong: #cdd0d7;
+  --fg: #0e1014;
+  --fg-muted: #555a66;
+  --fg-subtle: #878c97;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-fg: #ffffff;
+  --primary-soft: #eef0ff;
+  --primary-soft-fg: #3b35b8;
+  --danger: #dc2626;
+  --danger-soft: #fdf0f0;
+  --success: #15803d;
+  --success-soft: #edfaf1;
+  --warning: #b45309;
+  --warning-soft: #fdf6e9;
+  --canvas: #e9eaef;
+  --ring: rgb(79 70 229 / 0.4);
+  --shadow-page: 0 1px 2px rgb(15 17 22 / 0.08), 0 4px 16px -4px rgb(15 17 22 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0b0c10;
+  --surface: #121318;
+  --surface-2: #181a20;
+  --surface-3: #22252d;
+  --border: #23252d;
+  --border-strong: #353843;
+  --fg: #f1f2f4;
+  --fg-muted: #a2a6b0;
+  --fg-subtle: #6f7480;
+  --primary: #6c66f4;
+  --primary-hover: #7e79f6;
+  --primary-fg: #ffffff;
+  --primary-soft: rgb(108 102 244 / 0.16);
+  --primary-soft-fg: #c5c2ff;
+  --danger: #f05858;
+  --danger-soft: rgb(240 88 88 / 0.12);
+  --success: #3ccf78;
+  --success-soft: rgb(60 207 120 / 0.12);
+  --warning: #f0a53a;
+  --warning-soft: rgb(240 165 58 / 0.12);
+  --canvas: #0e0f14;
+  --ring: rgb(124 119 247 / 0.5);
+  --shadow-page: 0 1px 2px rgb(0 0 0 / 0.5), 0 6px 20px -6px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-fg: var(--primary-soft-fg);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-canvas: var(--canvas);
+  --color-ring: var(--ring);
+  --shadow-page: var(--shadow-page);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-pop-in: pop-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-slide-up: slide-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+
+  dialog::backdrop {
+    background: rgb(8 9 12 / 0.55);
+    backdrop-filter: blur(3px);
+  }
+
+  input[type="number"] {
+    appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  /* Diagonal hatch used for excluded split segments. */
+  .bg-hatch {
+    background-image: repeating-linear-gradient(-45deg, rgb(120 124 135 / 0.28) 0 6px, transparent 6px 12px);
+  }
+
+  .bg-grid-dots {
+    background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
