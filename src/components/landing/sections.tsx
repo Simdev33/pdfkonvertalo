@@ -1,5 +1,9 @@
 import { ChevronDown, Cpu, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { LOCALE_NAMES, LOCALES, pathFor, type Locale } from "@/i18n/config";
+import { SITE } from "@/i18n/dictionaries";
+import { fmt } from "@/i18n/format";
 import { site } from "@/lib/site";
 
 export function Backdrop() {
@@ -15,13 +19,13 @@ export function Hero({
   title,
   accent,
   text,
-  badge = "Feltöltés nélkül · 100%-ban a böngésződben",
+  badge,
   children,
 }: {
   title: ReactNode;
   accent: ReactNode;
   text: ReactNode;
-  badge?: string;
+  badge: string;
   children: ReactNode;
 }) {
   return (
@@ -82,28 +86,19 @@ export function Steps({ steps }: { steps: { icon: ReactNode; title: string; text
   );
 }
 
-export function Privacy() {
+export function Privacy({ locale }: { locale: Locale }) {
+  const text = SITE[locale].sections;
   return (
     <div className="grid items-center gap-10 overflow-hidden rounded-3xl border border-border bg-surface p-8 sm:p-12 lg:grid-cols-[1.1fr_1fr]">
       <div>
         <span className="grid size-10 place-items-center rounded-xl bg-success-soft text-success">
           <ShieldCheck className="size-5" />
         </span>
-        <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance">A fájljaid nálad maradnak</h2>
-        <p className="mt-3 leading-relaxed text-fg-muted">
-          Személyi igazolvány, bérpapír, szerződés, családi fotók: ezeket nem kellene idegen szerverekre feltölteni. A {site.name} a
-          képeket, szöveges fájlokat és PDF-eket a saját eszközödön alakítja át, ezért gyors, és akkor is biztonságos, ha bizalmas anyaggal
-          dolgozol. Egyedül a Word-, Excel- és PowerPoint-fájlokhoz kell a szerver: azokat egy irodai program alakítja PDF-fé, majd azonnal
-          törlődnek.
-        </p>
+        <h2 className="mt-5 text-3xl font-semibold tracking-tight text-balance">{text.privacyTitle}</h2>
+        <p className="mt-3 leading-relaxed text-fg-muted">{fmt(text.privacyText, { site: site.name })}</p>
       </div>
       <dl className="grid gap-3 sm:grid-cols-2">
-        {[
-          { value: "0 bájt", label: "feltöltés képeknél és PDF-eknél" },
-          { value: "Azonnal", label: "törlődik az Office-fájl a szerverről" },
-          { value: "Nincs", label: "regisztráció és vízjel" },
-          { value: "pdf.js", label: "a Mozilla megjelenítőmotorja" },
-        ].map((stat) => (
+        {text.stats.map((stat) => (
           <div key={stat.label} className="rounded-2xl bg-surface-2 p-5">
             <dt className="text-xs text-fg-muted">{stat.label}</dt>
             <dd className="mt-1 text-2xl font-semibold tracking-tight">{stat.value}</dd>
@@ -114,10 +109,10 @@ export function Privacy() {
   );
 }
 
-export function Faq({ items }: { items: { q: string; a: string }[] }) {
+export function Faq({ title, items }: { title: string; items: { q: string; a: string }[] }) {
   return (
     <>
-      <h2 className="text-center text-3xl font-semibold tracking-tight">Gyakori kérdések</h2>
+      <h2 className="text-center text-3xl font-semibold tracking-tight">{title}</h2>
       <div className="mt-8 divide-y divide-border rounded-2xl border border-border bg-surface">
         {items.map((item) => (
           <details key={item.q} className="group px-6 py-4 [&_summary::-webkit-details-marker]:hidden">
@@ -133,16 +128,42 @@ export function Faq({ items }: { items: { q: string; a: string }[] }) {
   );
 }
 
-export function Footer() {
+export function Footer({ locale }: { locale: Locale }) {
+  const text = SITE[locale].sections;
+  const link = "transition-colors hover:text-fg";
   return (
     <footer className="relative border-t border-border">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-sm text-fg-subtle sm:flex-row">
-        <p>
-          © {new Date().getFullYear()} {site.name}
-        </p>
-        <p className="flex items-center gap-1.5">
-          <Cpu className="size-3.5" /> Az Office-fájlok kivételével minden a böngésződben fut.
-        </p>
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 text-sm text-fg-subtle">
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <span>
+              © {new Date().getFullYear()} {site.name}
+            </span>
+            <Link href={pathFor("terms", locale)} className={link}>
+              {text.terms}
+            </Link>
+            <Link href={pathFor("privacy", locale)} className={link}>
+              {text.privacy}
+            </Link>
+          </p>
+          <p className="flex items-center gap-1.5 text-center">
+            <Cpu className="size-3.5 shrink-0" /> {text.footerNote}
+          </p>
+        </div>
+        <nav aria-label={text.languages} className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs sm:justify-start">
+          {LOCALES.map((option) => (
+            <Link
+              key={option}
+              href={pathFor("converter", option)}
+              hrefLang={option}
+              lang={option}
+              aria-current={option === locale ? "true" : undefined}
+              className={option === locale ? "font-semibold text-fg-muted" : link}
+            >
+              {LOCALE_NAMES[option]}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   );

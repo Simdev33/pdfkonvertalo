@@ -2,6 +2,9 @@
  * Demo inputs generated on the fly, so visitors (and tests) can try the
  * converter without having files at hand.
  */
+import { INTL_LOCALE } from "@/i18n/config";
+import { fmt } from "@/i18n/format";
+import { runtimeLocale, t } from "@/i18n/runtime";
 import { canvasToBlob } from "@/lib/pdf/pdfjs";
 
 function canvas(width: number, height: number) {
@@ -36,8 +39,8 @@ async function landscapePhoto() {
   ridge("#1c0a03", 900, 40, 5);
   ctx.fillStyle = "#fff";
   ctx.font = "600 64px system-ui, sans-serif";
-  ctx.fillText("Balaton, naplemente", 70, 130);
-  return new File([await canvasToBlob(element, "image/jpeg", 0.9)], "naplemente.jpg", { type: "image/jpeg" });
+  ctx.fillText(t().samples.photoCaption, 70, 130);
+  return new File([await canvasToBlob(element, "image/jpeg", 0.9)], t().samples.photoName, { type: "image/jpeg" });
 }
 
 async function transparentChart() {
@@ -46,7 +49,7 @@ async function transparentChart() {
   const colors = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#0ea5e9"];
   ctx.fillStyle = "#111827";
   ctx.font = "600 52px system-ui, sans-serif";
-  ctx.fillText("Negyedéves bevétel", 80, 110);
+  ctx.fillText(t().samples.chartTitle, 80, 110);
   values.forEach((value, i) => {
     const x = 110 + i * 170;
     const height = value * 6.5;
@@ -60,7 +63,7 @@ async function transparentChart() {
   });
   ctx.fillStyle = "#9ca3af";
   ctx.fillRect(80, 804, 1040, 4);
-  return new File([await canvasToBlob(element, "image/png")], "grafikon-atlatszo.png", { type: "image/png" });
+  return new File([await canvasToBlob(element, "image/png")], t().samples.chartName, { type: "image/png" });
 }
 
 async function portrait() {
@@ -82,43 +85,24 @@ async function portrait() {
   ctx.fill();
   const webp = await canvasToBlob(element, "image/webp", 0.9);
   const isWebp = webp.type === "image/webp";
-  return new File([webp], isWebp ? "virag.webp" : "virag.png", { type: webp.type });
+  return new File([webp], `${t().samples.flowerName}.${isWebp ? "webp" : "png"}`, { type: webp.type });
 }
 
-const MARKDOWN = `# Projektjegyzet
-
-Ez a fájl **Markdown** formátumú. A PDF Konvertáló megtartja a címsorokat, a *kiemeléseket*, a \`kódot\` és a [hivatkozásokat](https://example.com).
-
-## Teendők
-
-- Árajánlat összeállítása
-- Szerződés véglegesítése
-  - jogi átnézés
-  - aláírás
-- Számla kiküldése
-
-> A legjobb PDF az, amit nem kell kétszer elkészíteni.
-
-## Költségek
-
-| Tétel | Mennyiség | Ár |
-|---|---:|---:|
-| Tervezés | 12 óra | 180 000 Ft |
-| Fejlesztés | 40 óra | 600 000 Ft |
-| Tesztelés | 8 óra | 96 000 Ft |
-
-\`\`\`json
-{ "projekt": "PDF Konvertáló", "állapot": "kész" }
-\`\`\`
-`;
-
 function priceList() {
-  const products = ["Nyomtatópapír A4", "Tűzőgép", "Golyóstoll (kék)", "Iratrendező", "Post-it jegyzettömb", "Radír", "Vonalzó 30 cm", "Füzet A5"];
-  const rows = ["Cikkszám;Megnevezés;Mennyiség;Egységár;Összesen"];
+  const { samples } = t();
+  const format = new Intl.NumberFormat(INTL_LOCALE[runtimeLocale()]);
+  const rows = [samples.csvHeader];
   for (let i = 0; i < 36; i++) {
     const quantity = ((i * 7) % 12) + 1;
     const price = 190 + ((i * 331) % 4800);
-    rows.push(`KT-${String(1000 + i * 13)};${products[i % products.length]};${quantity} db;${price.toLocaleString("hu-HU")} Ft;${(price * quantity).toLocaleString("hu-HU")} Ft`);
+    const cells = [
+      `KT-${String(1000 + i * 13)}`,
+      samples.csvProducts[i % samples.csvProducts.length],
+      fmt(samples.csvQuantity, { count: quantity }),
+      fmt(samples.csvPrice, { value: format.format(price) }),
+      fmt(samples.csvPrice, { value: format.format(price * quantity) }),
+    ];
+    rows.push(cells.join(";"));
   }
   return rows.join("\r\n");
 }
@@ -129,7 +113,7 @@ export async function createSampleFiles(): Promise<File[]> {
     photo,
     flower,
     chart,
-    new File([MARKDOWN], "projektjegyzet.md", { type: "text/markdown" }),
-    new File([priceList()], "arlista.csv", { type: "text/csv" }),
+    new File([t().samples.markdown], t().samples.markdownName, { type: "text/markdown" }),
+    new File([priceList()], t().samples.csvName, { type: "text/csv" }),
   ];
 }

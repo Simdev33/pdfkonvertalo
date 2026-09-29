@@ -1,27 +1,30 @@
 /**
  * Page range expressions such as "1-3, 5, 8-", "-4", "páros" or "odd".
  * Page numbers in expressions are 1-based, everything returned is 0-based.
+ * Errors are codes; the UI turns them into text in the visitor's language.
  */
 
 /** Inclusive, 0-based, start <= end. */
 export type PageRange = readonly [start: number, end: number];
 
-export type RangesParseResult = { ok: true; ranges: PageRange[] } | { ok: false; error: string };
-export type SelectionParseResult = { ok: true; pages: number[] } | { ok: false; error: string };
+export type RangeError =
+  | { code: "unparsable"; token: string }
+  | { code: "zero" }
+  | { code: "beyond"; page: number; pageCount: number };
 
+export type RangesParseResult = { ok: true; ranges: PageRange[] } | { ok: false; error: RangeError };
+export type SelectionParseResult = { ok: true; pages: number[] } | { ok: false; error: RangeError };
+
+// Keywords in every supported language (with and without accents).
 const KEYWORDS: Record<string, "all" | "odd" | "even"> = {
-  mind: "all",
-  minden: "all",
-  összes: "all",
-  osszes: "all",
-  all: "all",
   "*": "all",
-  páratlan: "odd",
-  paratlan: "odd",
-  odd: "odd",
-  páros: "even",
-  paros: "even",
-  even: "even",
+  ...Object.fromEntries(
+    ["mind", "minden", "összes", "osszes", "all", "alle", "tout", "toutes", "tous", "todo", "todas", "todos"].map((word) => [word, "all" as const]),
+  ),
+  ...Object.fromEntries(
+    ["páratlan", "paratlan", "odd", "ungerade", "impair", "impaires", "impairs", "impar", "impares"].map((word) => [word, "odd" as const]),
+  ),
+  ...Object.fromEntries(["páros", "paros", "even", "gerade", "pair", "paires", "pairs", "par", "pares"].map((word) => [word, "even" as const])),
 };
 
 export function parsePageRanges(input: string, pageCount: number): RangesParseResult {
@@ -42,7 +45,7 @@ export function parsePageRanges(input: string, pageCount: number): RangesParseRe
     }
 
     const match = /^(\d+)?(-)?(\d+)?$/.exec(token);
-    if (!match || (!match[1] && !match[3])) return { ok: false, error: `Nem értelmezhető: „${token}”` };
+    if (!match || (!match[1] && !match[3])) return { ok: false, error: { code: "unparsable", token } };
 
     const [, from, dash, to] = match;
     let start: number;
@@ -55,8 +58,8 @@ export function parsePageRanges(input: string, pageCount: number): RangesParseRe
     }
 
     for (const value of [start, end]) {
-      if (value < 0) return { ok: false, error: "Az oldalszámozás 1-től indul." };
-      if (value >= pageCount) return { ok: false, error: `Nincs ${value + 1}. oldal – a dokumentum ${pageCount} oldalas.` };
+      if (value < 0) return { ok: false, error: { code: "zero" } };
+      if (value >= pageCount) return { ok: false, error: { code: "beyond", page: value + 1, pageCount } };
     }
     ranges.push(start <= end ? [start, end] : [end, start]);
   }

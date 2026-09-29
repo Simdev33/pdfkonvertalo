@@ -4,8 +4,12 @@ import { Check, FileImage, FileText, ImageDown, Lock, Minus, Plus, X } from "luc
 import { memo, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Hint, Kbd, Section, Segmented } from "@/components/ui/controls";
+import { INTL_LOCALE } from "@/i18n/config";
+import { fmt, plural } from "@/i18n/format";
+import { useI18n } from "@/i18n/provider";
+import type { UiDict } from "@/i18n/ui/hu";
 import { closePdfForImages, runPdfToImages } from "@/lib/pdf-to-image";
-import { formatPageSelection, parsePageSelection } from "@/lib/pdf/ranges";
+import { formatPageSelection, parsePageSelection, type RangeError } from "@/lib/pdf/ranges";
 import { clickPage, setImageOptions, setSelection, setThumbSize, useApp } from "@/lib/store";
 import { cn, formatBytes, formatNumber } from "@/lib/utils";
 import { Thumbnail } from "./thumbnail";
@@ -16,6 +20,8 @@ function Toolbar() {
   const doc = useApp((state) => state.pdfDoc)!;
   const selected = useApp((state) => state.selection.size);
   const thumbSize = useApp((state) => state.thumbSize);
+  const { locale, ui } = useI18n();
+  const text = ui.pdfTool;
   const count = doc.pages.length;
   const all = Array.from({ length: count }, (_, i) => i);
 
@@ -26,33 +32,33 @@ function Toolbar() {
         <span className="truncate text-[13px] font-medium" title={doc.fileName}>
           {doc.fileName}
         </span>
-        {doc.protected && <Lock className="size-3 shrink-0 text-fg-subtle" aria-label="Jelszóval védett" />}
+        {doc.protected && <Lock className="size-3 shrink-0 text-fg-subtle" aria-label={text.protected} />}
         <span className="shrink-0 text-xs text-fg-subtle tabular-nums">
-          {count} oldal · {formatBytes(doc.size)}
+          {plural(locale, text.pages, count)} · {formatBytes(doc.size, INTL_LOCALE[locale])}
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-1">
         <span className="mr-1 text-[13px] text-fg-muted tabular-nums">
-          <span className="font-semibold text-fg">{selected}</span> kijelölve
+          <span className="font-semibold text-fg">{selected}</span> {text.selected}
         </span>
         <Button variant="ghost" size="sm" onClick={() => setSelection(all)}>
-          Összes
+          {text.all}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setSelection(all.filter((i) => i % 2 === 0))}>
-          Páratlan
+          {text.odd}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setSelection(all.filter((i) => i % 2 === 1))}>
-          Páros
+          {text.even}
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setSelection([])} disabled={selected === 0}>
-          Egyik sem
+          {text.none}
         </Button>
       </div>
       <div className="ml-auto flex items-center gap-1.5">
         <span className="mr-2 hidden items-center gap-1 text-xs text-fg-subtle xl:flex">
-          <Kbd>Shift</Kbd> + kattintás: tartomány
+          <Kbd>Shift</Kbd> {text.rangeClick}
         </span>
-        <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={() => setThumbSize(Math.max(112, thumbSize - 28))} aria-label="Kicsinyítés">
+        <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={() => setThumbSize(Math.max(112, thumbSize - 28))} aria-label={text.zoomOut}>
           <Minus />
         </Button>
         <input
@@ -62,13 +68,13 @@ function Toolbar() {
           step={4}
           value={thumbSize}
           onChange={(event) => setThumbSize(Number(event.target.value))}
-          aria-label="Bélyegkép mérete"
+          aria-label={text.thumbSize}
           className="hidden w-24 accent-primary sm:block"
         />
-        <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={() => setThumbSize(Math.min(336, thumbSize + 28))} aria-label="Nagyítás">
+        <Button variant="ghost" size="icon-sm" className="hidden sm:inline-flex" onClick={() => setThumbSize(Math.min(336, thumbSize + 28))} aria-label={text.zoomIn}>
           <Plus />
         </Button>
-        <Button variant="ghost" size="icon-sm" onClick={closePdfForImages} aria-label="PDF bezárása" title="Bezárás">
+        <Button variant="ghost" size="icon-sm" onClick={closePdfForImages} aria-label={text.closePdf} title={ui.common.close}>
           <X />
         </Button>
       </div>
@@ -78,6 +84,7 @@ function Toolbar() {
 
 const PageCard = memo(function PageCard({ index, ratio, width }: { index: number; ratio: number; width: number }) {
   const selected = useApp((state) => state.selection.has(index));
+  const text = useI18n().ui.pdfTool;
   const wide = ratio >= BOX_RATIO;
   return (
     <div className="flex flex-col items-center gap-2.5">
@@ -86,7 +93,7 @@ const PageCard = memo(function PageCard({ index, ratio, width }: { index: number
           type="button"
           onClick={(event) => clickPage(index, { range: event.shiftKey })}
           aria-pressed={selected}
-          aria-label={`${index + 1}. oldal${selected ? " (kijelölve)" : ""}`}
+          aria-label={fmt(selected ? text.pageSelected : text.page, { page: index + 1 })}
           className={cn(
             "relative overflow-hidden rounded-[3px] bg-white shadow-page ring-offset-2 ring-offset-canvas transition-[box-shadow,transform] duration-150 outline-none hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-primary",
             wide ? "w-full" : "h-full",
@@ -121,20 +128,33 @@ function PageGrid() {
   );
 }
 
+function describeRangeError(error: RangeError, locale: Parameters<typeof plural>[0], text: UiDict["pdfTool"]) {
+  switch (error.code) {
+    case "unparsable":
+      return fmt(text.rangeUnparsable, { token: error.token });
+    case "zero":
+      return text.rangeZero;
+    case "beyond":
+      return plural(locale, text.rangeBeyond, error.pageCount, { page: error.page });
+  }
+}
+
 function Options() {
   const doc = useApp((state) => state.pdfDoc)!;
   const options = useApp((state) => state.imageOptions);
   const selection = useApp((state) => state.selection);
+  const { locale, ui } = useI18n();
+  const text = ui.pdfTool;
   const [draft, setDraft] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RangeError | null>(null);
   const first = doc.pages[0];
-  const px = (pt: number) => Math.round((pt * options.dpi) / 72);
+  const px = (pt: number) => formatNumber(Math.round((pt * options.dpi) / 72), 0, INTL_LOCALE[locale]);
 
   return (
     <>
-      <Section title="Formátum">
+      <Section title={text.format}>
         <Segmented<"jpeg" | "png">
-          label="Formátum"
+          label={text.format}
           value={options.format}
           onChange={(format) => setImageOptions({ format })}
           options={[
@@ -142,11 +162,9 @@ function Options() {
             { value: "png", label: "PNG", icon: <FileImage /> },
           ]}
         />
-        <p className="text-xs leading-relaxed text-fg-subtle">
-          {options.format === "jpeg" ? "Kisebb fájl – fotókhoz és vegyes tartalomhoz." : "Veszteségmentes – szöveghez, ábrákhoz, képernyőképekhez."}
-        </p>
+        <p className="text-xs leading-relaxed text-fg-subtle">{options.format === "jpeg" ? text.jpegHint : text.pngHint}</p>
         {options.format === "jpeg" && (
-          <Field label={`Minőség: ${options.quality}%`}>
+          <Field label={fmt(text.quality, { value: options.quality })}>
             <input
               type="range"
               min={50}
@@ -154,35 +172,33 @@ function Options() {
               step={5}
               value={options.quality}
               onChange={(event) => setImageOptions({ quality: Number(event.target.value) })}
-              aria-label="JPG minőség"
+              aria-label={text.qualityLabel}
               className="w-full accent-primary"
             />
           </Field>
         )}
       </Section>
 
-      <Section title="Felbontás">
+      <Section title={text.resolution}>
         <Segmented<string>
           size="sm"
-          label="Felbontás"
+          label={text.resolution}
           value={String(options.dpi)}
           onChange={(value) => setImageOptions({ dpi: Number(value) })}
           options={["72", "150", "300", "600"].map((value) => ({ value, label: `${value} DPI` }))}
         />
-        <p className="text-xs text-fg-subtle tabular-nums">
-          Az 1. oldal mérete: {formatNumber(px(first.width), 0)} × {formatNumber(px(first.height), 0)} képpont
-        </p>
+        <p className="text-xs text-fg-subtle tabular-nums">{fmt(text.firstPage, { width: px(first.width), height: px(first.height) })}</p>
       </Section>
 
-      <Section title="Oldalak">
+      <Section title={text.pagesTitle}>
         <Segmented<"all" | "selected">
           size="sm"
-          label="Oldalak"
+          label={text.pagesTitle}
           value={options.scope}
           onChange={(scope) => setImageOptions({ scope })}
           options={[
-            { value: "all", label: `Mind (${doc.pages.length})` },
-            { value: "selected", label: `Kijelöltek (${selection.size})` },
+            { value: "all", label: fmt(text.scopeAll, { count: doc.pages.length }) },
+            { value: "selected", label: fmt(text.scopeSelected, { count: selection.size }) },
           ]}
         />
         {options.scope === "selected" && (
@@ -201,17 +217,17 @@ function Options() {
                 setDraft(null);
                 setError(null);
               }}
-              placeholder="pl. 1-3, 7, 10-"
-              aria-label="Kijelölt oldalak"
+              placeholder={text.rangePlaceholder}
+              aria-label={text.rangeLabel}
               className={cn(
                 "h-9 w-full rounded-lg bg-surface px-3 font-mono text-[13px] ring-1 ring-inset outline-none focus:ring-2 focus:ring-primary",
                 error ? "ring-danger" : "ring-border-strong/70",
               )}
             />
-            <p className={cn("text-xs", error ? "text-danger" : "text-fg-subtle")}>{error ?? "Kattints az oldalakra, vagy írd be a számukat."}</p>
+            <p className={cn("text-xs", error ? "text-danger" : "text-fg-subtle")}>{error ? describeRangeError(error, locale, text) : text.rangeHint}</p>
           </div>
         )}
-        <Hint>A képekbe a felbontás is bekerül, így nyomtatáskor valós méretűek lesznek.</Hint>
+        <Hint>{text.dpiHint}</Hint>
       </Section>
     </>
   );
@@ -220,12 +236,14 @@ function Options() {
 function ActionBar() {
   const count = useApp((state) => (state.imageOptions.scope === "selected" ? state.selection.size : (state.pdfDoc?.pages.length ?? 0)));
   const format = useApp((state) => state.imageOptions.format);
+  const { locale, ui } = useI18n();
+  const text = ui.pdfTool;
   return (
     <div className="sticky bottom-0 z-20 border-t border-border bg-surface/95 p-4 backdrop-blur">
       <div className="mb-2.5 flex items-center justify-between text-xs text-fg-muted">
         <span className="tabular-nums">
-          {count} oldal → {count} {format === "jpeg" ? "JPG" : "PNG"}
-          {count > 1 ? " (ZIP)" : ""}
+          {plural(locale, text.summary, count, { format: format === "jpeg" ? "JPG" : "PNG" })}
+          {count > 1 ? text.zip : ""}
         </span>
         <span className="hidden items-center gap-1 lg:flex">
           <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd>
@@ -233,7 +251,7 @@ function ActionBar() {
       </div>
       <Button variant="primary" size="lg" className="w-full" disabled={count === 0} onClick={() => void runPdfToImages()}>
         <ImageDown />
-        {count === 1 ? "Kép mentése" : "Képek mentése"}
+        {count === 1 ? text.saveOne : text.saveMany}
       </Button>
     </div>
   );
@@ -274,4 +292,3 @@ export function PdfToImageWorkspace() {
     </div>
   );
 }
-

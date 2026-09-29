@@ -1,15 +1,22 @@
+/**
+ * The social sharing image, rendered per language by the opengraph-image
+ * routes of app/(hu) and app/[lang].
+ */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import type { Locale } from "@/i18n/config";
+import { SITE } from "@/i18n/dictionaries";
 import { site } from "@/lib/site";
 
-export const alt = `${site.name} – ${site.tagline}`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const OG_SIZE = { width: 1200, height: 630 };
 
 const FORMATS = ["JPG", "PNG", "HEIC", "DOCX", "XLSX", "PPTX", "TXT"];
 
-export default async function OpenGraphImage() {
+export const ogAlt = (locale: Locale) => `${site.name} – ${SITE[locale].meta.tagline}`;
+
+export async function renderOgImage(locale: Locale) {
+  const meta = SITE[locale].meta;
   // Noto Sans has the Hungarian double acute letters (ő, ű) the default font lacks.
   const [bold, regular] = await Promise.all([
     readFile(join(process.cwd(), "public", "fonts", "NotoSans-Bold.ttf")),
@@ -51,13 +58,13 @@ export default async function OpenGraphImage() {
           </div>
           <div style={{ fontSize: 40, fontWeight: 700 }}>{site.name}</div>
           <div style={{ marginLeft: "auto", padding: "8px 20px", borderRadius: 999, background: "rgba(60, 207, 120, 0.14)", color: "#7ee2a8", fontSize: 24 }}>
-            regisztráció és vízjel nélkül
+            {meta.ogBadge}
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>Képekből és fájlokból</div>
-          <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2, color: "#a5a1ff" }}>profi PDF, pillanatok alatt.</div>
+          <div style={{ fontSize: 72, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>{meta.ogTitle}</div>
+          <div style={{ fontSize: 72, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2, color: "#a5a1ff" }}>{meta.ogAccent}</div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -72,7 +79,7 @@ export default async function OpenGraphImage() {
       </div>
     ),
     {
-      ...size,
+      ...OG_SIZE,
       fonts: [
         { name: "Noto Sans", data: bold, weight: 700, style: "normal" },
         { name: "Noto Sans", data: regular, weight: 400, style: "normal" },

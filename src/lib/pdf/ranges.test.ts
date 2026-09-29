@@ -15,6 +15,9 @@ describe("parsePageSelection", () => {
     expect(parsePageSelection("páratlan", 5)).toEqual({ ok: true, pages: [0, 2, 4] });
     expect(parsePageSelection("Páros", 5)).toEqual({ ok: true, pages: [1, 3] });
     expect(parsePageSelection("all", 3)).toEqual({ ok: true, pages: [0, 1, 2] });
+    expect(parsePageSelection("Ungerade", 5)).toEqual({ ok: true, pages: [0, 2, 4] });
+    expect(parsePageSelection("paires", 5)).toEqual({ ok: true, pages: [1, 3] });
+    expect(parsePageSelection("todas", 2)).toEqual({ ok: true, pages: [0, 1] });
   });
 
   it("treats empty input as empty selection", () => {
@@ -22,11 +25,9 @@ describe("parsePageSelection", () => {
   });
 
   it("reports invalid tokens and out of range pages", () => {
-    const invalid = parsePageSelection("1, x", 3);
-    expect(invalid.ok).toBe(false);
-    const tooBig = parsePageSelection("2-4", 3);
-    expect(tooBig).toEqual({ ok: false, error: "Nincs 4. oldal – a dokumentum 3 oldalas." });
-    expect(parsePageSelection("0", 3).ok).toBe(false);
+    expect(parsePageSelection("1, x", 3)).toEqual({ ok: false, error: { code: "unparsable", token: "x" } });
+    expect(parsePageSelection("2-4", 3)).toEqual({ ok: false, error: { code: "beyond", page: 4, pageCount: 3 } });
+    expect(parsePageSelection("0", 3)).toEqual({ ok: false, error: { code: "zero" } });
     expect(parsePageSelection("-", 3).ok).toBe(false);
   });
 });

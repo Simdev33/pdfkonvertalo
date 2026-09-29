@@ -4,6 +4,7 @@ import { FileUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgressBar, Spinner } from "@/components/ui/controls";
 import { useFilePicker } from "@/components/use-file-picker";
+import { useI18n } from "@/i18n/provider";
 import { useApp } from "@/lib/store";
 
 export function Dropzone({
@@ -14,7 +15,7 @@ export function Dropzone({
   subtitle,
   buttonLabel,
   onSample,
-  sampleLabel = "Kipróbálom mintafájlokkal",
+  sampleLabel,
 }: {
   accept: string;
   multiple?: boolean;
@@ -26,6 +27,7 @@ export function Dropzone({
   sampleLabel?: string;
 }) {
   const loading = useApp((state) => state.loading);
+  const { ui } = useI18n();
   const { open, input } = useFilePicker({ accept, multiple, onFiles });
 
   if (loading) {
@@ -75,7 +77,7 @@ export function Dropzone({
           {onSample && (
             <Button variant="secondary" size="lg" onClick={onSample}>
               <Sparkles />
-              {sampleLabel}
+              {sampleLabel ?? ui.dropzone.sample}
             </Button>
           )}
         </div>

@@ -14,11 +14,12 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function formatNumber(value: number, maximumFractionDigits = 1) {
-  return value.toLocaleString("hu-HU", { maximumFractionDigits });
+/** `locale` is a BCP 47 tag, see INTL_LOCALE in @/i18n/config. */
+export function formatNumber(value: number, maximumFractionDigits = 1, locale = "hu-HU") {
+  return value.toLocaleString(locale, { maximumFractionDigits });
 }
 
-export function formatBytes(bytes: number) {
+export function formatBytes(bytes: number, locale = "hu-HU") {
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];
   let value = bytes / 1024;
@@ -27,12 +28,12 @@ export function formatBytes(bytes: number) {
     value /= 1024;
     unit++;
   }
-  return `${formatNumber(value, value < 10 ? 1 : 0)} ${units[unit]}`;
+  return `${formatNumber(value, value < 10 ? 1 : 0, locale)} ${units[unit]}`;
 }
 
-export function formatDuration(ms: number) {
+export function formatDuration(ms: number, locale = "hu-HU", seconds = "mp") {
   if (ms < 1000) return `${Math.max(1, Math.round(ms))} ms`;
-  return `${formatNumber(ms / 1000, 1)} mp`;
+  return `${formatNumber(ms / 1000, 1, locale)} ${seconds}`;
 }
 
 /** Parses user input like "12,5" or "12.5". Returns NaN when invalid. */
@@ -49,7 +50,7 @@ export function yieldToBrowser() {
 
 export class AbortedError extends Error {
   constructor() {
-    super("A műveletet megszakítottad.");
+    super("Aborted"); // never shown: callers check isAbortError()
     this.name = "AbortError";
   }
 }

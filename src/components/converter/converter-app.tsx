@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, type ReactNode } from "react";
 import { Spinner } from "@/components/ui/controls";
+import { plural } from "@/i18n/format";
+import { runtimeLocale, t } from "@/i18n/runtime";
 import { addFiles, filesFromClipboard } from "@/lib/converter";
 import { toast, useApp } from "@/lib/store";
 
@@ -27,7 +29,7 @@ export function ConverterApp({ landing }: { landing: ReactNode }) {
       const files = filesFromClipboard(event.clipboardData);
       if (!files.length) return;
       event.preventDefault();
-      toast(files.length === 1 ? "Kép beillesztve a vágólapról." : `${files.length} fájl beillesztve a vágólapról.`, "success");
+      toast(plural(runtimeLocale(), t().dropzone.pasted, files.length), "success");
       void addFiles(files);
     };
     window.addEventListener("paste", onPaste);

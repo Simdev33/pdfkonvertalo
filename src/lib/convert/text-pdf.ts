@@ -137,7 +137,7 @@ class Typesetter {
     this.work += amount;
     if (this.work < 300) return;
     this.work = 0;
-    if (this.options.signal?.aborted) throw Object.assign(new Error("A műveletet megszakítottad."), { name: "AbortError" });
+    if (this.options.signal?.aborted) throw Object.assign(new Error("Aborted"), { name: "AbortError" });
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 

@@ -18,6 +18,9 @@ import {
   useApp,
   type Item,
 } from "@/lib/store";
+import { INTL_LOCALE } from "@/i18n/config";
+import { fmt, plural } from "@/i18n/format";
+import { runtimeLocale, t } from "@/i18n/runtime";
 import { isAbortError } from "@/lib/utils";
 
 let counter = 0;
@@ -25,7 +28,7 @@ const newId = () => `${Date.now().toString(36)}-${(counter++).toString(36)}`;
 
 export function describeError(error: unknown) {
   if (error instanceof Error && error.message) return error.message;
-  return "Váratlan hiba történt.";
+  return t().common.unexpected;
 }
 
 const exists = (id: string) => useApp.getState().items.some((item) => item.id === id);
@@ -55,8 +58,8 @@ export async function addFiles(input: Iterable<File>) {
   }
 
   if (rejected.length) {
-    const list = rejected.slice(0, 3).map((name) => `„${name}”`).join(", ");
-    toast(`${rejected.length > 3 ? `${rejected.length} fájl` : list}: nem támogatott vagy üres fájl.`, "error");
+    const list = rejected.length > 3 ? plural(runtimeLocale(), t().files.count, rejected.length) : rejected.slice(0, 3).join(", ");
+    toast(fmt(t().convert.rejected, { list }), "error");
   }
   if (!accepted.length) return;
 
@@ -93,7 +96,7 @@ async function processItem(item: Item) {
           const entered = await requestPassword(item.name, error.reason);
           if (entered === null) {
             removeItem(item.id);
-            toast(`„${item.name}” kihagyva – jelszó nélkül nem nyitható meg.`);
+            toast(fmt(t().convert.passwordSkipped, { name: item.name }));
             return;
           }
           password = entered;
@@ -135,35 +138,35 @@ export async function addSampleFiles() {
 /** Images pasted with Ctrl+V (screenshots, copied images). */
 export function filesFromClipboard(data: DataTransfer | null) {
   if (!data) return [];
-  const stamp = new Date().toLocaleTimeString("hu-HU", { hour12: false }).replace(/:/g, "-");
+  const stamp = new Date().toLocaleTimeString(INTL_LOCALE[runtimeLocale()], { hour12: false }).replace(/[:.\s]/g, "-");
   return Array.from(data.files).map((file, index) => {
     const generic = !file.name || /^image\.\w+$/i.test(file.name);
     if (!generic) return file;
     const extension = file.type.split("/")[1]?.replace("jpeg", "jpg") ?? "png";
-    return new File([file], `beillesztett-${stamp}${index ? `-${index + 1}` : ""}.${extension}`, { type: file.type });
+    return new File([file], `${t().dropzone.pastedName}-${stamp}${index ? `-${index + 1}` : ""}.${extension}`, { type: file.type });
   });
 }
 
-export function defaultOutputName(items: readonly Item[]) {
-  return items.length === 1 ? baseNameOf(items[0].name) : "konvertalt";
+export function defaultOutputName(items: readonly Item[], fallback = t().convert.defaultName) {
+  return items.length === 1 ? baseNameOf(items[0].name) : fallback;
 }
 
 export async function runConversion() {
   const state = useApp.getState();
   if (state.job) return;
   if (state.items.some((item) => item.status === "processing")) {
-    toast("Egy pillanat, még töltődnek a fájlok.");
+    toast(t().convert.stillLoading);
     return;
   }
   const ready = state.items.filter((item) => item.status === "ready");
   if (!ready.length) {
-    toast("Nincs konvertálható fájl.", "error");
+    toast(t().convert.nothing, "error");
     return;
   }
 
   const fileName = state.options.fileName.trim() || defaultOutputName(ready);
   const controller = new AbortController();
-  startJob("Konvertálás PDF-be", () => controller.abort());
+  startJob(t().convert.jobTitle, () => controller.abort());
   const started = performance.now();
 
   try {
@@ -171,18 +174,22 @@ export async function runConversion() {
     const items: ConvertItem[] = ready.map(({ id, file, name, format, rotation, password }) => ({ id, file, name, format, rotation, password }));
     const files = await convertToPdf(items, { ...state.options, fileName }, { signal: controller.signal, progress: updateJob });
     const skipped = state.items.length - ready.length;
+    const { convert, files: filesText } = t();
+    const locale = runtimeLocale();
     const notes: string[] = [];
-    if (state.options.output === "merge") notes.push(`${ready.length} fájlból ${files[0]?.pages ?? 0} oldalas PDF készült.`);
-    if (skipped) notes.push(`${skipped} hibás fájl kimaradt.`);
+    if (state.options.output === "merge") {
+      notes.push(plural(locale, convert.mergedNote, files[0]?.pages ?? 0, { files: plural(locale, filesText.count, ready.length) }));
+    }
+    if (skipped) notes.push(plural(locale, convert.skippedNote, skipped));
     setResult({
-      title: files.length === 1 ? "Elkészült a PDF" : `${files.length} PDF elkészült`,
+      title: files.length === 1 ? convert.resultOne : plural(locale, convert.resultMany, files.length),
       files,
       archiveName: `${fileName}.zip`,
       elapsed: performance.now() - started,
       notes,
     });
   } catch (error) {
-    if (isAbortError(error)) toast("A konvertálást megszakítottad.");
+    if (isAbortError(error)) toast(t().convert.cancelled);
     else {
       console.error(error);
       toast(describeError(error), "error");

@@ -47,15 +47,15 @@ describe("officeToPdf via Gotenberg", () => {
     expect(lastRequest.body).toMatch(/name="files"; filename="dokumentum\.docx"/);
   });
 
-  it("turns a password error into a clear message", async () => {
+  it("turns a password error into the password code", async () => {
     await expect(officeToPdf(docx("jelszavas"), "docx")).rejects.toThrow(OfficeError);
-    await expect(officeToPdf(docx("jelszavas"), "docx")).rejects.toThrow(/jelszóval védett/);
+    await expect(officeToPdf(docx("jelszavas"), "docx")).rejects.toMatchObject({ code: "password" });
   });
 
   it("rejects an encrypted OOXML package before uploading it", async () => {
     lastRequest = { body: "" };
     const encrypted = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, ...new TextEncoder().encode("x"), ...Buffer.from("EncryptedPackage", "utf16le")]);
-    await expect(officeToPdf(encrypted, "xlsx")).rejects.toThrow(/jelszóval védett/);
+    await expect(officeToPdf(encrypted, "xlsx")).rejects.toMatchObject({ code: "password" });
     expect(lastRequest.url).toBeUndefined();
   });
 });

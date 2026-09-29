@@ -16,12 +16,16 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { OFFICE_FORMATS, type OfficeApp, type OfficeFormat } from "@/lib/convert/formats";
 
+/** Codes map to texts in the server dictionary (SiteDict["server"]). */
+export type OfficeErrorCode = "password" | "failed" | "busy" | "timeout" | "unavailable" | "noEngine";
+
 export class OfficeError extends Error {
   constructor(
-    message: string,
+    readonly code: OfficeErrorCode,
     readonly status = 422,
+    readonly vars: Record<string, string> = {},
   ) {
-    super(message);
+    super(code);
     this.name = "OfficeError";
   }
 }
@@ -31,9 +35,6 @@ type Engine = { kind: "gotenberg"; url: string } | { kind: "libreoffice"; path: 
 const TIMEOUT_MS = 120_000;
 /** Conversions wait in a queue; beyond this many the server says it is busy. */
 const MAX_WAITING = 8;
-
-const PASSWORD_MESSAGE = "A fájl jelszóval védett. Nyisd meg, vedd le róla a jelszót, és próbáld újra.";
-const FAILED_MESSAGE = "Nem sikerült PDF-fé alakítani a fájlt. Lehet, hogy sérült vagy üres.";
 
 interface RunError extends Error {
   killed?: boolean;
@@ -99,7 +100,7 @@ let queue: Promise<unknown> = Promise.resolve();
 let waiting = 0;
 
 function serial<T>(job: () => Promise<T>): Promise<T> {
-  if (waiting >= MAX_WAITING) throw new OfficeError("Most sokan konvertálnak egyszerre. Próbáld újra egy perc múlva.", 503);
+  if (waiting >= MAX_WAITING) throw new OfficeError("busy", 503);
   waiting++;
   const next = queue.then(job, job).finally(() => waiting--);
   queue = next.catch(() => undefined);
@@ -116,13 +117,13 @@ async function viaGotenberg(base: string, bytes: Uint8Array, ext: string) {
   const url = new URL("forms/libreoffice/convert", base.endsWith("/") ? base : `${base}/`);
   const response = await fetch(url, { method: "POST", body: form, signal: AbortSignal.timeout(TIMEOUT_MS) }).catch((error: unknown) => {
     console.error("[office] Gotenberg unreachable", error);
-    throw new OfficeError("A dokumentum-átalakító szolgáltatás most nem érhető el.", 503);
+    throw new OfficeError("unavailable", 503);
   });
   if (!response.ok || !response.body) {
     const detail = await response.text().catch(() => "");
-    if (/password/i.test(detail)) throw new OfficeError(PASSWORD_MESSAGE);
+    if (/password/i.test(detail)) throw new OfficeError("password");
     console.error("[office] Gotenberg", response.status, detail);
-    throw new OfficeError(FAILED_MESSAGE);
+    throw new OfficeError("failed");
   }
   return response.body;
 }
@@ -230,12 +231,10 @@ function isEncryptedPackage(bytes: Uint8Array) {
 
 export async function officeToPdf(bytes: Uint8Array, format: OfficeFormat): Promise<ReadableStream<Uint8Array> | Uint8Array> {
   const { app, container } = OFFICE_FORMATS[format];
-  if (container === "ooxml" && isEncryptedPackage(bytes)) throw new OfficeError(PASSWORD_MESSAGE);
+  if (container === "ooxml" && isEncryptedPackage(bytes)) throw new OfficeError("password");
 
   const engine = await findEngine(app);
-  if (!engine) {
-    throw new OfficeError(`Ezen a szerveren nincs átalakító ehhez a fájlhoz (LibreOffice, Gotenberg vagy Microsoft ${MS_OFFICE[app].name}).`, 501);
-  }
+  if (!engine) throw new OfficeError("noEngine", 501, { app: MS_OFFICE[app].name });
   if (engine.kind === "gotenberg") return viaGotenberg(engine.url, bytes, format);
 
   return serial(async () => {
@@ -246,15 +245,15 @@ export async function officeToPdf(bytes: Uint8Array, format: OfficeFormat): Prom
       await writeFile(input, bytes);
       if (engine.kind === "libreoffice") await viaLibreOffice(engine.path, input, dir);
       else await viaMsOffice(engine.app, input, output, dir);
-      if (!existsSync(output)) throw new OfficeError(FAILED_MESSAGE);
+      if (!existsSync(output)) throw new OfficeError("failed");
       return new Uint8Array(await readFile(output));
     } catch (error) {
       if (error instanceof OfficeError) throw error;
       const { killed, stderr, message } = error as RunError;
-      if (killed) throw new OfficeError("Túl sokáig tartott a fájl átalakítása.", 504);
-      if (/password|jelsz/i.test(`${stderr} ${message}`)) throw new OfficeError(PASSWORD_MESSAGE);
+      if (killed) throw new OfficeError("timeout", 504);
+      if (/password|jelsz/i.test(`${stderr} ${message}`)) throw new OfficeError("password");
       console.error(`[office] ${engine.kind === "msoffice" ? MS_OFFICE[engine.app].name : engine.kind} failed`, stderr || message);
-      throw new OfficeError(FAILED_MESSAGE);
+      throw new OfficeError("failed");
     } finally {
       await rm(dir, { recursive: true, force: true }).catch(() => undefined);
     }

@@ -4,22 +4,26 @@
  * The result is kept per file, so the card preview and the final conversion
  * share a single upload.
  */
+import { fmt } from "@/i18n/format";
+import { runtimeLocale, t } from "@/i18n/runtime";
+
 const cache = new WeakMap<File, Promise<Blob>>();
 
 async function upload(file: File) {
   const body = new FormData();
   body.append("file", file, file.name);
+  body.append("locale", runtimeLocale());
   let response: Response;
   try {
     response = await fetch("/api/office-to-pdf", { method: "POST", body });
   } catch {
-    throw new Error("Nem érhető el a szerver, ellenőrizd az internetkapcsolatot.");
+    throw new Error(t().convert.network);
   }
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
     // A 413 without our JSON comes from the hosting platform's own body limit.
-    if (!data?.error && response.status === 413) throw new Error("A fájl túl nagy ahhoz, hogy a szerver átalakítsa.");
-    throw new Error(data?.error ?? `A szerver hibát jelzett (${response.status}).`);
+    if (!data?.error && response.status === 413) throw new Error(t().convert.tooLarge);
+    throw new Error(data?.error ?? fmt(t().convert.serverStatus, { status: response.status }));
   }
   return response.blob();
 }

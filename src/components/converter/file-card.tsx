@@ -3,6 +3,10 @@
 import { CircleAlert, GripVertical, RotateCcw, RotateCw, X } from "lucide-react";
 import { forwardRef, memo, type CSSProperties, type HTMLAttributes, type ReactNode } from "react";
 import { Spinner } from "@/components/ui/controls";
+import { INTL_LOCALE, type Locale } from "@/i18n/config";
+import { plural } from "@/i18n/format";
+import { useI18n } from "@/i18n/provider";
+import type { UiDict } from "@/i18n/ui/hu";
 import type { ConvertOptions } from "@/lib/convert/engine";
 import { cardGeometry } from "@/lib/convert/preview";
 import { removeItem, rotateItem, type Item } from "@/lib/store";
@@ -10,24 +14,25 @@ import { cn, formatBytes } from "@/lib/utils";
 
 const BOX_RATIO = 1 / Math.SQRT2;
 
-function describe(item: Item) {
-  const parts: string[] = [item.format.label, formatBytes(item.size)];
+function describe(item: Item, locale: Locale, text: UiDict["files"]) {
+  const parts: string[] = [item.format.label, formatBytes(item.size, INTL_LOCALE[locale])];
   const preview = item.preview;
   if (preview && item.format.kind === "image") {
     parts.push(`${preview.width} × ${preview.height}`);
-    if (preview.count && preview.count > 1) parts.push(`${preview.count} kép`);
+    if (preview.count && preview.count > 1) parts.push(plural(locale, text.images, preview.count));
   }
-  if (preview?.count && (item.format.kind === "pdf" || item.format.kind === "office")) parts.push(`${preview.count} oldal`);
+  if (preview?.count && (item.format.kind === "pdf" || item.format.kind === "office")) parts.push(plural(locale, text.pages, preview.count));
   return parts.join(" · ");
 }
 
 function PagePreview({ item, options }: { item: Item; options: ConvertOptions }) {
   const geometry = cardGeometry(item, options);
+  const text = useI18n().ui.files;
   if (item.status === "error") {
     return (
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md bg-danger-soft p-3 text-center text-xs text-danger ring-1 ring-danger/30">
         <CircleAlert className="size-5" />
-        <span className="line-clamp-4">{item.error ?? "Hiba"}</span>
+        <span className="line-clamp-4">{item.error ?? text.error}</span>
       </div>
     );
   }
@@ -35,7 +40,7 @@ function PagePreview({ item, options }: { item: Item; options: ConvertOptions })
     return (
       <div className="flex aspect-[1/1.4142] h-full flex-col items-center justify-center gap-2 rounded-[3px] bg-surface p-2 text-center shadow-page">
         <Spinner className="size-5 text-fg-subtle" />
-        {item.format.kind === "office" && <span className="text-[11px] leading-tight text-fg-subtle">Átalakítás a szerveren…</span>}
+        {item.format.kind === "office" && <span className="text-[11px] leading-tight text-fg-subtle">{text.converting}</span>}
       </div>
     );
   }
@@ -111,6 +116,7 @@ export interface FileCardProps extends HTMLAttributes<HTMLDivElement> {
 
 export const FileCard = memo(
   forwardRef<HTMLDivElement, FileCardProps>(function FileCard({ item, index, options, dragging, overlay, className, ...props }, ref) {
+    const { locale, ui } = useI18n();
     const canRotate = item.status === "ready" && item.format.kind !== "text";
     return (
       <div
@@ -151,15 +157,15 @@ export const FileCard = memo(
             >
               {canRotate && (
                 <>
-                  <CardButton label="Forgatás balra" onClick={() => rotateItem(item.id, -90)}>
+                  <CardButton label={ui.files.rotateLeft} onClick={() => rotateItem(item.id, -90)}>
                     <RotateCcw />
                   </CardButton>
-                  <CardButton label="Forgatás jobbra" onClick={() => rotateItem(item.id, 90)}>
+                  <CardButton label={ui.files.rotateRight} onClick={() => rotateItem(item.id, 90)}>
                     <RotateCw />
                   </CardButton>
                 </>
               )}
-              <CardButton label="Eltávolítás" onClick={() => removeItem(item.id)} danger>
+              <CardButton label={ui.files.remove} onClick={() => removeItem(item.id)} danger>
                 <X />
               </CardButton>
             </div>
@@ -172,7 +178,7 @@ export const FileCard = memo(
             <p className="truncate text-[13px] font-medium" title={item.name}>
               {item.name}
             </p>
-            <p className="truncate text-[11px] text-fg-subtle tabular-nums">{describe(item)}</p>
+            <p className="truncate text-[11px] text-fg-subtle tabular-nums">{describe(item, locale, ui.files)}</p>
           </div>
         </div>
       </div>

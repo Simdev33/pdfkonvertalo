@@ -7,6 +7,7 @@
  * lossy anyway, like WebP, AVIF or HEIC).
  */
 import type { RasterImage } from "@/lib/pdf/build";
+import { t } from "@/i18n/runtime";
 import { canvasToBlob, releaseCanvas } from "@/lib/pdf/pdfjs";
 import type { ImageFormat } from "./formats";
 import { readJpegInfo, readPngInfo, type Dpi } from "./image-info";
@@ -120,7 +121,7 @@ async function decodeSvg(file: Blob, maxSide?: number): Promise<Frame> {
   const text = await file.text();
   const doc = new DOMParser().parseFromString(text, "image/svg+xml");
   const svg = doc.documentElement;
-  if (svg.nodeName.toLowerCase() !== "svg") throw new Error("Érvénytelen SVG-fájl.");
+  if (svg.nodeName.toLowerCase() !== "svg") throw new Error(t().convert.invalidSvg);
   const viewBox = (svg.getAttribute("viewBox") ?? "").split(/[\s,]+/).map(Number);
   let width = svgLength(svg.getAttribute("width"));
   let height = svgLength(svg.getAttribute("height"));
@@ -151,7 +152,7 @@ async function decodeTiff(file: Blob, maxSide?: number): Promise<Frame[]> {
   const UTIF = (await import("utif2")).default;
   const buffer = await file.arrayBuffer();
   const pages = UTIF.decode(buffer).filter((ifd) => ifd.t256 && ifd.t257);
-  if (pages.length === 0) throw new Error("A TIFF-fájl nem tartalmaz képet.");
+  if (pages.length === 0) throw new Error(t().convert.emptyTiff);
   const frames: Frame[] = [];
   for (const ifd of pages) {
     UTIF.decodeImage(buffer, ifd);

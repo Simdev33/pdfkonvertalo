@@ -3,6 +3,7 @@
  * ends up in the server bundle or the landing page's critical path.
  */
 import type { PDFDocumentProxy } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { t } from "@/i18n/runtime";
 
 type Pdfjs = typeof import("pdfjs-dist/legacy/build/pdf.mjs");
 export type { PDFDocumentProxy };
@@ -34,7 +35,7 @@ export function loadPdfjs(): Promise<Pdfjs> {
 
 export class PasswordError extends Error {
   constructor(readonly reason: "need" | "incorrect") {
-    super(reason === "need" ? "A PDF megnyitásához jelszó szükséges." : "Hibás jelszó.");
+    super(reason === "need" ? "Password required" : "Incorrect password"); // handled by the password dialog, never shown
     this.name = "PasswordError";
   }
 }
@@ -61,7 +62,7 @@ export async function openDocument(bytes: Uint8Array, password?: string): Promis
       const code = (error as Error & { code?: number }).code;
       throw new PasswordError(code === pdfjs.PasswordResponses.INCORRECT_PASSWORD ? "incorrect" : "need");
     }
-    if (name === "InvalidPDFException") throw new Error("A fájl sérült, vagy nem érvényes PDF.");
+    if (name === "InvalidPDFException") throw new Error(t().convert.invalidPdf);
     throw error;
   }
 }
@@ -98,7 +99,7 @@ export function releaseCanvas(canvas: HTMLCanvasElement) {
 
 export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number) {
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("A kép kódolása nem sikerült."))), type, quality);
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error(t().convert.encodeFailed))), type, quality);
   });
 }
 

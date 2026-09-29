@@ -18,11 +18,12 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+/** `compact`: the name is hidden on phones, where the header needs the room. */
+export function Logo({ className, compact }: { className?: string; compact?: boolean }) {
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <LogoMark />
-      <span className="text-[15px] font-semibold tracking-tight text-fg">{site.name}</span>
+      <span className={cn("text-[15px] font-semibold tracking-tight text-fg", compact && "hidden sm:inline")}>{site.name}</span>
     </span>
   );
 }

@@ -5,14 +5,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/controls";
 import { Dialog, DialogClose } from "@/components/ui/dialog";
+import { INTL_LOCALE } from "@/i18n/config";
+import { fmt, plural } from "@/i18n/format";
+import { useI18n } from "@/i18n/provider";
 import { createZip, downloadBlob, openBlob } from "@/lib/files";
 import { setResult, toast, useApp, type ResultState } from "@/lib/store";
 import { formatBytes, formatDuration } from "@/lib/utils";
 
 export function ResultsDialog() {
   const result = useApp((state) => state.result);
+  const { ui } = useI18n();
   return (
-    <Dialog open={result !== null} onClose={() => setResult(null)} label="Eredmény" className="max-w-xl">
+    <Dialog open={result !== null} onClose={() => setResult(null)} label={ui.overlays.resultLabel} className="max-w-xl">
       {result && <ResultsBody result={result} />}
     </Dialog>
   );
@@ -21,6 +25,9 @@ export function ResultsDialog() {
 function ResultsBody({ result }: { result: ResultState }) {
   const [zipping, setZipping] = useState(false);
   const [zip, setZip] = useState<Blob | null>(null);
+  const { locale, ui } = useI18n();
+  const intl = INTL_LOCALE[locale];
+  const text = ui.overlays;
   const totalSize = result.files.reduce((sum, file) => sum + file.blob.size, 0);
   const multiple = result.files.length > 1;
 
@@ -36,7 +43,7 @@ function ResultsBody({ result }: { result: ResultState }) {
       downloadBlob(archive, result.archiveName);
     } catch (error) {
       console.error(error);
-      toast("A ZIP-fájl elkészítése nem sikerült.", "error");
+      toast(text.zipFailed, "error");
     } finally {
       setZipping(false);
     }
@@ -51,7 +58,11 @@ function ResultsBody({ result }: { result: ResultState }) {
         </span>
         <h2 className="mt-4 text-lg font-semibold tracking-tight">{result.title}</h2>
         <p className="mt-1 text-sm text-fg-muted tabular-nums">
-          {result.files.length} fájl · összesen {formatBytes(totalSize)} · {formatDuration(result.elapsed)} alatt
+          {fmt(text.resultSummary, {
+            files: plural(locale, ui.files.count, result.files.length),
+            size: formatBytes(totalSize, intl),
+            duration: formatDuration(result.elapsed, intl, ui.common.seconds),
+          })}
         </p>
         {result.notes.length > 0 && (
           <ul className="mt-3 space-y-1 text-sm text-fg-muted">
@@ -75,13 +86,15 @@ function ResultsBody({ result }: { result: ResultState }) {
                   {file.name}
                 </p>
                 <p className="truncate text-xs text-fg-subtle tabular-nums">
-                  {[file.detail ?? (file.pages !== undefined ? `${file.pages} oldal` : null), formatBytes(file.blob.size)].filter(Boolean).join(" · ")}
+                  {[file.detail ?? (file.pages !== undefined ? plural(locale, ui.files.pages, file.pages) : null), formatBytes(file.blob.size, intl)]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
               </div>
-              <Button variant="ghost" size="icon-sm" onClick={() => openBlob(file.blob)} aria-label={`${file.name} megnyitása`} title="Megnyitás új lapon">
+              <Button variant="ghost" size="icon-sm" onClick={() => openBlob(file.blob)} aria-label={fmt(text.openFile, { name: file.name })} title={text.openNewTab}>
                 <ExternalLink />
               </Button>
-              <Button variant="ghost" size="icon-sm" onClick={() => downloadBlob(file.blob, file.name)} aria-label={`${file.name} letöltése`} title="Letöltés">
+              <Button variant="ghost" size="icon-sm" onClick={() => downloadBlob(file.blob, file.name)} aria-label={fmt(text.downloadFile, { name: file.name })} title={text.download}>
                 <Download />
               </Button>
             </li>
@@ -91,11 +104,11 @@ function ResultsBody({ result }: { result: ResultState }) {
 
       <div className="flex flex-col-reverse gap-2 p-5 sm:flex-row sm:justify-end">
         <Button variant="ghost" onClick={() => setResult(null)}>
-          Bezárás
+          {ui.common.close}
         </Button>
         <Button variant="primary" onClick={() => void downloadAll()} disabled={zipping} autoFocus>
           {zipping ? <Spinner /> : multiple ? <Archive /> : <Download />}
-          {multiple ? `Összes letöltése (ZIP)` : "Letöltés"}
+          {multiple ? text.downloadAll : text.download}
         </Button>
       </div>
     </div>

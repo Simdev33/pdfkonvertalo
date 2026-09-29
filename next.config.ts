@@ -10,6 +10,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    // Two root layouts (app/(hu) and app/[lang]) need a routing-level 404 page.
+    globalNotFound: true,
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

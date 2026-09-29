@@ -6,22 +6,24 @@ import { baseNameOf, padNumber, withJpegDpi, withPngDpi, type OutputFile } from 
 import { canvasToBlob, openDocument, PasswordError, readPageInfo, releaseCanvas, renderPage, type PDFDocumentProxy } from "@/lib/pdf/pdfjs";
 import { createSession, getSession, setSession } from "@/lib/pdf/session";
 import { endJob, requestPassword, setLoading, setPdfDoc, setResult, startJob, toast, updateJob, useApp } from "@/lib/store";
+import { fmt, plural } from "@/i18n/format";
+import { runtimeLocale, t } from "@/i18n/runtime";
 import { isAbortError, throwIfAborted, yieldToBrowser } from "@/lib/utils";
 
 export async function openPdfForImages(file: File) {
   if (useApp.getState().loading) return;
   if (!(file.type === "application/pdf" || /\.pdf$/i.test(file.name))) {
-    toast(`„${file.name}” nem PDF-fájl.`, "error");
+    toast(fmt(t().pdfTool.notPdf, { name: file.name }), "error");
     return;
   }
-  setLoading({ fileName: file.name, phase: "Fájl beolvasása…", done: 0, total: 0 });
+  setLoading({ fileName: file.name, phase: t().pdfTool.reading, done: 0, total: 0 });
   try {
     const bytes = new Uint8Array(await file.arrayBuffer());
     let password: string | undefined;
     let pdf: PDFDocumentProxy;
     for (;;) {
       try {
-        setLoading({ fileName: file.name, phase: "Dokumentum megnyitása…", done: 0, total: 0 });
+        setLoading({ fileName: file.name, phase: t().pdfTool.opening, done: 0, total: 0 });
         pdf = await openDocument(bytes, password);
         break;
       } catch (error) {
@@ -31,7 +33,7 @@ export async function openPdfForImages(file: File) {
         password = entered;
       }
     }
-    const pages = await readPageInfo(pdf, (done, total) => setLoading({ fileName: file.name, phase: "Oldalak beolvasása…", done, total }));
+    const pages = await readPageInfo(pdf, (done, total) => setLoading({ fileName: file.name, phase: t().pdfTool.readingPages, done, total }));
     const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     setSession(createSession({ id, pdf, pages }));
     setPdfDoc({ id, fileName: file.name, baseName: baseNameOf(file.name), size: file.size, pages, protected: password !== undefined });
@@ -61,27 +63,28 @@ export async function runPdfToImages() {
   if (state.job || !state.pdfDoc) return;
   if (!session) {
     setPdfDoc(null);
-    toast("A PDF már nincs megnyitva – nyisd meg újra.", "error");
+    toast(t().pdfTool.closed, "error");
     return;
   }
   const pages = exportPages();
   if (!pages.length) {
-    toast("Jelölj ki legalább egy oldalt.", "error");
+    toast(t().pdfTool.selectOne, "error");
     return;
   }
 
   const { format, dpi, quality } = state.imageOptions;
   const { baseName } = state.pdfDoc;
   const extension = format === "jpeg" ? "jpg" : "png";
+  const text = t().pdfTool;
   const controller = new AbortController();
-  startJob("Képek készítése", () => controller.abort());
+  startJob(text.jobTitle, () => controller.abort());
   const started = performance.now();
 
   try {
     const files: OutputFile[] = [];
     for (const [done, index] of pages.entries()) {
       throwIfAborted(controller.signal);
-      updateJob(done, pages.length, `${index + 1}. oldal`);
+      updateJob(done, pages.length, fmt(text.page, { page: index + 1 }));
       const canvas = await renderPage(session.pdf, index, dpi / 72);
       const blob = await canvasToBlob(canvas, format === "jpeg" ? "image/jpeg" : "image/png", format === "jpeg" ? quality / 100 : undefined);
       const bytes = new Uint8Array(await blob.arrayBuffer());
@@ -89,20 +92,20 @@ export async function runPdfToImages() {
       files.push({
         name: `${baseName}_${padNumber(index + 1, state.pdfDoc.pages.length)}.${extension}`,
         blob: new Blob([withDpi as Uint8Array<ArrayBuffer>], { type: blob.type }),
-        detail: `${index + 1}. oldal · ${canvas.width} × ${canvas.height} px`,
+        detail: fmt(text.detail, { page: index + 1, width: canvas.width, height: canvas.height }),
       });
       releaseCanvas(canvas);
       await yieldToBrowser();
     }
     setResult({
-      title: files.length === 1 ? "Elkészült a kép" : `${files.length} kép elkészült`,
+      title: files.length === 1 ? text.resultOne : plural(runtimeLocale(), text.resultMany, files.length),
       files,
-      archiveName: `${baseName}_kepek.zip`,
+      archiveName: `${baseName}_${text.archiveSuffix}.zip`,
       elapsed: performance.now() - started,
-      notes: [`${format === "jpeg" ? "JPG" : "PNG"}, ${dpi} DPI felbontással.`],
+      notes: [fmt(text.note, { format: format === "jpeg" ? "JPG" : "PNG", dpi })],
     });
   } catch (error) {
-    if (isAbortError(error)) toast("A műveletet megszakítottad.");
+    if (isAbortError(error)) toast(text.cancelled);
     else {
       console.error(error);
       toast(describeError(error), "error");

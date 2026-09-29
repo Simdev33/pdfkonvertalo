@@ -4,6 +4,8 @@ import { FileDown } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Kbd, Spinner } from "@/components/ui/controls";
+import { fmt, plural } from "@/i18n/format";
+import { useI18n } from "@/i18n/provider";
 import { runConversion } from "@/lib/converter";
 import { useApp } from "@/lib/store";
 import { FileGrid } from "./file-grid";
@@ -23,10 +25,13 @@ function ActionBar() {
   });
   const output = useApp((state) => state.options.output);
   const [ready, processing, failed] = counts.split(":").map(Number);
+  const { locale, ui } = useI18n();
+  const text = ui.convert;
 
   const summary = processing
-    ? `${processing} fájl betöltése…`
-    : `${ready} fájl → ${output === "merge" ? "1 PDF" : `${ready} PDF`}${failed ? ` · ${failed} hibás kimarad` : ""}`;
+    ? plural(locale, text.loading, processing)
+    : fmt(text.summary, { files: plural(locale, ui.files.count, ready), pdfs: plural(locale, text.pdfCount, output === "merge" ? 1 : ready) }) +
+      (failed ? plural(locale, text.failedCount, failed) : "");
 
   return (
     <div className="sticky bottom-0 z-20 border-t border-border bg-surface/95 p-4 backdrop-blur">
@@ -41,7 +46,7 @@ function ActionBar() {
       </div>
       <Button variant="primary" size="lg" className="w-full" disabled={ready === 0 || processing > 0} onClick={() => void runConversion()}>
         <FileDown />
-        {output === "merge" ? "PDF létrehozása" : "PDF-ek létrehozása"}
+        {output === "merge" ? text.createOne : text.createMany}
       </Button>
     </div>
   );

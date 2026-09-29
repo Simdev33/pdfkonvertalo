@@ -34,10 +34,11 @@ export function expandTabs(line: string, size = 4) {
 
 const splitLines = (text: string) => text.replace(/^﻿/, "").split(/\r\n|\r|\n/);
 
-export function toBlocks(text: string, format: TextFormat): Block[] {
+/** `imageLabel` stands in for Markdown images, which are not embedded. */
+export function toBlocks(text: string, format: TextFormat, imageLabel?: string): Block[] {
   switch (format) {
     case "markdown":
-      return parseMarkdown(text);
+      return parseMarkdown(text, imageLabel);
     case "csv":
     case "tsv": {
       const rows = parseDelimited(text, format === "tsv" ? "\t" : undefined);
@@ -127,7 +128,7 @@ export function parseDelimited(text: string, delimiter = detectDelimiter(text)):
 
 const INLINE = /(`+)([^`]+?)\1|\*\*(.+?)\*\*|__(.+?)__|\*([^*\s](?:[^*]*[^*\s])?)\*|(?<![\w])_([^_\s](?:[^_]*[^_\s])?)_(?![\w])|!\[([^\]]*)\]\([^)]*\)|\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|<(https?:\/\/[^>\s]+)>/g;
 
-export function parseInline(text: string, base: FontStyle = "regular"): Run[] {
+export function parseInline(text: string, base: FontStyle = "regular", imageLabel = "[kép]"): Run[] {
   const runs: Run[] = [];
   const push = (value: string, style: FontStyle, href?: string) => {
     if (!value) return;
@@ -143,7 +144,7 @@ export function parseInline(text: string, base: FontStyle = "regular"): Run[] {
     if (code !== undefined) push(code, "mono");
     else if (bold1 ?? bold2) push((bold1 ?? bold2)!, "bold");
     else if (italic1 ?? italic2) push((italic1 ?? italic2)!, base === "bold" ? "bold" : "italic");
-    else if (image !== undefined) push(image ? `[${image}]` : "[kép]", "italic");
+    else if (image !== undefined) push(image ? `[${image}]` : imageLabel, "italic");
     else if (linkText !== undefined) push(linkText, base, linkHref);
     else if (autolink) push(autolink, base, autolink);
     index = match.index + match[0].length;
@@ -166,7 +167,7 @@ const tableCells = (line: string) =>
     .split(/(?<!\\)\|/)
     .map((cell) => cell.trim().replace(/\\\|/g, "|"));
 
-export function parseMarkdown(text: string): Block[] {
+export function parseMarkdown(text: string, imageLabel?: string): Block[] {
   const lines = splitLines(text).map((line) => expandTabs(line));
   const blocks: Block[] = [];
   const startsBlock = (line: string, next?: string) =>
@@ -192,7 +193,7 @@ export function parseMarkdown(text: string): Block[] {
 
     const heading = HEADING.exec(line);
     if (heading) {
-      blocks.push({ type: "heading", level: heading[1].length, runs: parseInline(heading[2] ?? "", "bold") });
+      blocks.push({ type: "heading", level: heading[1].length, runs: parseInline(heading[2] ?? "", "bold", imageLabel) });
       i++;
       continue;
     }
@@ -215,7 +216,7 @@ export function parseMarkdown(text: string): Block[] {
     if (/^\s*>/.test(line)) {
       const quote: string[] = [];
       while (i < lines.length && /^\s*>/.test(lines[i])) quote.push(lines[i++].replace(/^\s*>\s?/, ""));
-      blocks.push({ type: "quote", runs: parseInline(quote.join(" ").trim()) });
+      blocks.push({ type: "quote", runs: parseInline(quote.join(" ").trim(), "regular", imageLabel) });
       continue;
     }
 
@@ -226,13 +227,13 @@ export function parseMarkdown(text: string): Block[] {
       const parts = [item[3].replace(/^\[( |x|X)\]\s+/, (_, done: string) => (done === " " ? "[ ] " : "[x] "))];
       i++;
       while (i < lines.length && lines[i].trim() && !startsBlock(lines[i], lines[i + 1]) && /^\s+/.test(lines[i])) parts.push(lines[i++].trim());
-      blocks.push({ type: "item", runs: parseInline(parts.join(" ")), marker: ordered ? item[2].replace(")", ".") : "•", depth });
+      blocks.push({ type: "item", runs: parseInline(parts.join(" "), "regular", imageLabel), marker: ordered ? item[2].replace(")", ".") : "•", depth });
       continue;
     }
 
     const paragraph: string[] = [];
     while (i < lines.length && lines[i].trim() && (paragraph.length === 0 || !startsBlock(lines[i], lines[i + 1]))) paragraph.push(lines[i++].trim());
-    blocks.push({ type: "paragraph", runs: parseInline(paragraph.join(" ")) });
+    blocks.push({ type: "paragraph", runs: parseInline(paragraph.join(" "), "regular", imageLabel) });
   }
   return blocks;
 }

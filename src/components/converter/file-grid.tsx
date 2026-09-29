@@ -19,13 +19,15 @@ import { ArrowDownAZ, ArrowUpDown, ArrowUpZA, Plus, Trash2 } from "lucide-react"
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useFilePicker } from "@/components/use-file-picker";
+import { INTL_LOCALE } from "@/i18n/config";
+import { around, fmt, pluralForm } from "@/i18n/format";
+import { useI18n } from "@/i18n/provider";
 import { ACCEPT } from "@/lib/convert/formats";
 import { addFiles } from "@/lib/converter";
 import { clearItems, moveItem, sortItems, useApp, type Item } from "@/lib/store";
 import { formatBytes } from "@/lib/utils";
 import { FileCard } from "./file-card";
 
-const nameOf = (items: Item[], id: string | number) => items.find((item) => item.id === id)?.name ?? "fájl";
 const positionOf = (items: Item[], id: string | number) => items.findIndex((item) => item.id === id) + 1;
 
 export function FileGrid() {
@@ -33,6 +35,8 @@ export function FileGrid() {
   const options = useApp((state) => state.options);
   const [activeId, setActiveId] = useState<string | null>(null);
   const { open, input } = useFilePicker({ accept: ACCEPT, multiple: true, onFiles: (files) => void addFiles(files) });
+  const { locale, ui } = useI18n();
+  const text = ui.files;
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -40,12 +44,15 @@ export function FileGrid() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  const nameOf = (id: string | number) => items.find((item) => item.id === id)?.name ?? text.fallbackName;
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `${nameOf(items, active.id)} felvéve, jelenleg a(z) ${positionOf(items, active.id)}. helyen.`,
-    onDragOver: ({ active, over }) => (over ? `${nameOf(items, active.id)} a(z) ${positionOf(items, over.id)}. helyre kerül.` : undefined),
-    onDragEnd: ({ active, over }) => (over ? `${nameOf(items, active.id)} letéve a(z) ${positionOf(items, over.id)}. helyen.` : "Áthelyezés megszakítva."),
-    onDragCancel: ({ active }) => `${nameOf(items, active.id)} áthelyezése megszakítva.`,
+    onDragStart: ({ active }) => fmt(text.dndPickedUp, { name: nameOf(active.id), position: positionOf(items, active.id) }),
+    onDragOver: ({ active, over }) => (over ? fmt(text.dndOver, { name: nameOf(active.id), position: positionOf(items, over.id) }) : undefined),
+    onDragEnd: ({ active, over }) =>
+      over ? fmt(text.dndDropped, { name: nameOf(active.id), position: positionOf(items, over.id) }) : text.dndCancelled,
+    onDragCancel: ({ active }) => fmt(text.dndCancelledItem, { name: nameOf(active.id) }),
   };
+  const [countBefore, countAfter] = around(pluralForm(locale, text.count, items.length), "count");
 
   const onDragStart = (event: DragStartEvent) => setActiveId(String(event.active.id));
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -59,17 +66,19 @@ export function FileGrid() {
     <>
       <div className="flex min-h-12 flex-wrap items-center gap-x-2 gap-y-2 border-b border-border bg-surface/85 px-3 py-2 backdrop-blur sm:px-4">
         <p className="mr-auto text-[13px] text-fg-muted tabular-nums">
-          <span className="font-semibold text-fg">{items.length}</span> fájl · {formatBytes(totalSize)}
-          <span className="ml-2 hidden text-xs text-fg-subtle md:inline">Húzással rendezheted a sorrendet.</span>
+          {countBefore}
+          <span className="font-semibold text-fg">{items.length}</span>
+          {countAfter} · {formatBytes(totalSize, INTL_LOCALE[locale])}
+          <span className="ml-2 hidden text-xs text-fg-subtle md:inline">{text.reorderHint}</span>
         </p>
         <SortMenu />
-        <Button variant="ghost" size="sm" onClick={() => window.confirm("Biztosan eltávolítod az összes fájlt?") && clearItems()}>
+        <Button variant="ghost" size="sm" onClick={() => window.confirm(text.confirmClear) && clearItems()}>
           <Trash2 />
-          <span className="hidden sm:inline">Összes törlése</span>
+          <span className="hidden sm:inline">{text.clearAll}</span>
         </Button>
         <Button variant="soft" size="sm" onClick={open}>
           <Plus />
-          Hozzáadás
+          {text.add}
         </Button>
         {input}
       </div>
@@ -84,7 +93,7 @@ export function FileGrid() {
           accessibility={{
             announcements,
             screenReaderInstructions: {
-              draggable: "A fájl felvételéhez nyomd meg a szóközt. Húzás közben a nyilakkal mozgathatod, a szóközzel leteheted, az Escape-pel megszakíthatod.",
+              draggable: text.dndInstructions,
             },
           }}
         >
@@ -107,6 +116,7 @@ export function FileGrid() {
 
 function SortableCard({ item, index, options }: { item: Item; index: number; options: ReturnType<typeof useApp.getState>["options"] }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const { ui } = useI18n();
   return (
     <FileCard
       ref={setNodeRef}
@@ -115,7 +125,7 @@ function SortableCard({ item, index, options }: { item: Item; index: number; opt
       options={options}
       dragging={isDragging}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      aria-label={`${index + 1}. ${item.name}`}
+      aria-label={fmt(ui.files.cardLabel, { position: index + 1, name: item.name })}
       {...attributes}
       {...listeners}
     />
@@ -123,6 +133,7 @@ function SortableCard({ item, index, options }: { item: Item; index: number; opt
 }
 
 function AddCard({ onClick }: { onClick: () => void }) {
+  const text = useI18n().ui.files;
   return (
     <button
       type="button"
@@ -133,8 +144,8 @@ function AddCard({ onClick }: { onClick: () => void }) {
         <span className="grid size-10 place-items-center rounded-full bg-surface-2 transition-colors group-hover:bg-primary-soft">
           <Plus className="size-5" />
         </span>
-        <span className="text-[13px] font-medium">Fájlok hozzáadása</span>
-        <span className="px-3 text-center text-[11px] text-fg-subtle">vagy húzd ide, illeszd be (Ctrl+V)</span>
+        <span className="text-[13px] font-medium">{text.addTitle}</span>
+        <span className="px-3 text-center text-[11px] text-fg-subtle">{text.addHint}</span>
       </span>
     </button>
   );
@@ -142,6 +153,7 @@ function AddCard({ onClick }: { onClick: () => void }) {
 
 function SortMenu() {
   const ref = useRef<HTMLDetailsElement>(null);
+  const text = useI18n().ui.files;
   const choose = (by: Parameters<typeof sortItems>[0]) => {
     sortItems(by);
     if (ref.current) ref.current.open = false;
@@ -150,15 +162,15 @@ function SortMenu() {
     <details ref={ref} className="relative [&_summary::-webkit-details-marker]:hidden">
       <summary className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium text-fg-muted hover:bg-surface-2 hover:text-fg [&_svg]:size-4">
         <ArrowUpDown />
-        <span className="hidden sm:inline">Rendezés</span>
+        <span className="hidden sm:inline">{text.sort}</span>
       </summary>
-      <div className="absolute right-0 z-30 mt-1 w-52 rounded-xl border border-border bg-surface p-1 shadow-xl animate-pop-in">
+      <div className="absolute right-0 z-30 mt-1 w-56 rounded-xl border border-border bg-surface p-1 shadow-xl animate-pop-in">
         {(
           [
-            ["name-asc", "Név szerint (A–Z)", <ArrowDownAZ key="a" />],
-            ["name-desc", "Név szerint (Z–A)", <ArrowUpZA key="z" />],
-            ["size-asc", "Méret szerint (növekvő)", <ArrowUpDown key="s" />],
-            ["size-desc", "Méret szerint (csökkenő)", <ArrowUpDown key="d" />],
+            ["name-asc", text.sortNameAsc, <ArrowDownAZ key="a" />],
+            ["name-desc", text.sortNameDesc, <ArrowUpZA key="z" />],
+            ["size-asc", text.sortSizeAsc, <ArrowUpDown key="s" />],
+            ["size-desc", text.sortSizeDesc, <ArrowUpDown key="d" />],
           ] as const
         ).map(([by, label, icon]) => (
           <button

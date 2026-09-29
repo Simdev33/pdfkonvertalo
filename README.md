@@ -1,6 +1,6 @@
 # PDF Konvertáló
 
-Profi, magyar nyelvű PDF konvertáló Next.js-ben. A képek, szöveges fájlok és PDF-ek feldolgozása **a böngészőben** történik – ezek nem kerülnek szerverre. Egyedül a Word-, Excel- és PowerPoint-fájlokat alakítja át a szerver (lásd lent).
+Profi PDF konvertáló Next.js-ben, öt nyelven (magyar, angol, német, francia, spanyol). A képek, szöveges fájlok és PDF-ek feldolgozása **a böngészőben** történik – ezek nem kerülnek szerverre. Egyedül a Word-, Excel- és PowerPoint-fájlokat alakítja át a szerver (lásd lent).
 
 ## Funkciók
 
@@ -26,6 +26,22 @@ Profi, magyar nyelvű PDF konvertáló Next.js-ben. A képek, szöveges fájlok 
 
 - Oldalak JPG vagy PNG képpé, 72–600 DPI-n, akár csak a kijelölt oldalakból
 - A képekbe a felbontás is bekerül (JFIF / pHYs), így nyomtatáskor valós méretűek
+
+**Jogi oldalak:** Általános szerződési feltételek (`/aszf`) és adatkezelési tájékoztató (`/adatvedelem`), minden nyelven.
+
+## Nyelvek
+
+| Oldal | magyar | angol | német | francia | spanyol |
+| --- | --- | --- | --- | --- | --- |
+| Konvertáló | `/` | `/en` | `/de` | `/fr` | `/es` |
+| PDF-ből kép | `/pdf-bol-kep` | `/en/pdf-to-image` | `/de/pdf-in-bild` | `/fr/pdf-en-image` | `/es/pdf-a-imagen` |
+| ÁSZF | `/aszf` | `/en/terms` | `/de/agb` | `/fr/conditions` | `/es/terminos` |
+| Adatvédelem | `/adatvedelem` | `/en/privacy` | `/de/datenschutz` | `/fr/confidentialite` | `/es/privacidad` |
+
+- A magyar a régi címeken maradt (`app/(hu)`), a többi nyelv közös, előtagos útvonalon fut (`app/[lang]`); mind statikusan generált. A két gyökér-layout miatt a 404-et az `app/global-not-found.tsx` adja (`experimental.globalNotFound`).
+- Címek és nyelvek: `src/i18n/config.ts` (`SLUGS`, `pathFor`). A magyar mappanevek a `SLUGS.hu` értékei – ha egyiket átnevezed, a mappát is.
+- Szövegek: `src/i18n/ui/*` (a felület, csak az aktív nyelv kerül a böngészőbe), `src/i18n/site/*` (nyitóoldalak, metaadatok, API-hibák), `src/i18n/legal/*` (jogi szövegek). A forrás a magyar; a `src/i18n/i18n.test.ts` ellenőrzi, hogy minden fordításban ugyanazok a kulcsok, `{helykitöltők}` és linkek szerepelnek.
+- Nyelvváltó a fejlécben, `hreflang` alternatívák az oldalakon és a `sitemap.xml`-ben, nyelvenkénti OG-kép.
 
 ## Technológia
 
@@ -57,7 +73,9 @@ Majd nyisd meg: http://localhost:3000
 
 A `scripts/copy-assets.mjs` (automatikusan fut `install`, `dev` és `build` előtt) a pdf.js workerét és adatfájljait a `public/pdfjs/<verzió>/`, a Noto betűket a `public/fonts/` mappába másolja.
 
-Élesítéskor állítsd be a `NEXT_PUBLIC_SITE_URL` környezeti változót (pl. `https://pdfkonvertalo.hu`) a helyes megosztási (Open Graph) linkekhez.
+Élesítéskor állítsd be a `NEXT_PUBLIC_SITE_URL` környezeti változót (pl. `https://pdfkonvertalo.hu`) a helyes canonical-, `hreflang`-, sitemap- és Open Graph-linkekhez. Ha nincs megadva, Vercelen a projekt éles domainje (`VERCEL_PROJECT_PRODUCTION_URL`) lesz az alapcím.
+
+Az ÁSZF és az adatkezelési tájékoztató üzemeltetői adatai (név, cím, e-mail, opcionálisan nyilvántartási szám és adószám) a `src/lib/site.ts` `operator` mezőjében vannak; amíg üresek, a jogi oldalakon kiemelt „kitöltendő” jelölés látszik. Ugyanitt van a hatálybalépés dátuma (`legalEffective`).
 
 ### Office → PDF (szerveroldal)
 
@@ -93,9 +111,16 @@ Tudnivalók:
 vercel.json               Vercel Services: Next.js + belső Gotenberg
 gotenberg/                a Gotenberg-szolgáltatás konténere (Dockerfile.vercel)
 src/
-  app/                    oldalak (/, /pdf-bol-kep), layout, favicon, OG-kép
+  app/
+    (hu)/                 magyar oldalak a gyökérben (/, /pdf-bol-kep, /aszf, /adatvedelem) + gyökér-layout
+    [lang]/               angol, német, francia, spanyol oldalak lefordított címekkel + gyökér-layout
     api/office-to-pdf/    Office → PDF végpont
+    global-not-found.tsx, sitemap.ts, robots.ts, icon.svg
+  i18n/                   nyelvek, címek, szótárak (ui / site / legal), fordítási segédek
   components/
+    site-shell.tsx        közös <html>-váz (betűk, téma, nyelv, fejléc)
+    pages.tsx             oldaltartalom és metaadatok oldalazonosító szerint
+    legal-page.tsx        ÁSZF / adatvédelem megjelenítése
     converter/            PDF-be konvertálás munkafelülete (kártyák, beállítások)
     pdf-to-image/         PDF-ből kép munkafelülete
     landing/              nyitóoldalak

@@ -2,6 +2,8 @@
 
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import { useId, useState, type ReactNode } from "react";
+import { INTL_LOCALE } from "@/i18n/config";
+import { useI18n } from "@/i18n/provider";
 import { clamp, cn, formatNumber, parseDecimal } from "@/lib/utils";
 
 /* -------------------------------------------------------------------------- */
@@ -130,8 +132,9 @@ export function NumberInput({
   stepper?: boolean;
 }) {
   const id = useId();
+  const { locale, ui } = useI18n();
   const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? formatNumber(value, digits);
+  const shown = draft ?? formatNumber(value, digits, INTL_LOCALE[locale]);
   const invalid = draft !== null && Number.isNaN(parseDecimal(draft));
 
   const commit = (next: number) => {
@@ -151,7 +154,7 @@ export function NumberInput({
         <button
           type="button"
           tabIndex={-1}
-          aria-label="Csökkentés"
+          aria-label={ui.common.decrease}
           onClick={() => commit(value - step)}
           className="grid h-full w-8 shrink-0 place-items-center text-fg-subtle hover:text-fg"
         >
@@ -197,7 +200,7 @@ export function NumberInput({
         <button
           type="button"
           tabIndex={-1}
-          aria-label="Növelés"
+          aria-label={ui.common.increase}
           onClick={() => commit(value + step)}
           className="grid h-full w-8 shrink-0 place-items-center text-fg-subtle hover:text-fg"
         >

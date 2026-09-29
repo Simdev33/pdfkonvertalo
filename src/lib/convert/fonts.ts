@@ -1,5 +1,6 @@
 import type { FontStyle } from "./text-model";
 import type { FontSource } from "./text-pdf";
+import { t } from "@/i18n/runtime";
 
 /** Noto fonts served from /public/fonts (copied there by scripts/copy-assets.mjs). */
 export const FONT_FILES: Record<FontStyle, string> = {
@@ -16,7 +17,7 @@ export const browserFonts: FontSource = (style) => {
   if (!font) {
     font = fetch(`/fonts/${FONT_FILES[style]}`)
       .then((response) => {
-        if (!response.ok) throw new Error("A betűtípus nem tölthető be. Ellenőrizd az internetkapcsolatot.");
+        if (!response.ok) throw new Error(t().convert.fontFailed);
         return response.arrayBuffer();
       })
       .then((buffer) => new Uint8Array(buffer));

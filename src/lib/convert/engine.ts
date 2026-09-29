@@ -5,6 +5,8 @@
  */
 import type { PDFDocument, PDFPage, PDFRef } from "@cantoo/pdf-lib";
 import { baseNameOf, pdfBlob, sanitizeFileName, type OutputFile } from "@/lib/files";
+import { fmt } from "@/i18n/format";
+import { t } from "@/i18n/runtime";
 import { site } from "@/lib/site";
 import { throwIfAborted, yieldToBrowser } from "@/lib/utils";
 import type { DetectedFormat } from "./formats";
@@ -144,7 +146,7 @@ async function appendItem(doc: PDFDocument, pager: ImagePager, item: ConvertItem
     import("./text-pdf"),
     import("./fonts"),
   ]);
-  const blocks = toBlocks(decodeText(new Uint8Array(await item.file.arrayBuffer())), format.format);
+  const blocks = toBlocks(decodeText(new Uint8Array(await item.file.arrayBuffer())), format.format, t().convert.imagePlaceholder);
   const sizeId = options.pageSize === "fit" ? "A4" : options.pageSize;
   const margin = Math.max(options.marginMm, MIN_TEXT_MARGIN_MM) * PT_PER_MM;
   let landscape = options.orientation === "landscape";
@@ -186,13 +188,13 @@ export async function convertToPdf(items: readonly ConvertItem[], options: Conve
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") throw error;
       const reason = error instanceof Error ? error.message : String(error);
-      throw new Error(`„${item.name}” nem konvertálható: ${reason}`);
+      throw new Error(fmt(t().convert.itemFailed, { name: item.name, reason }));
     }
     await yieldToBrowser();
   }
 
   if (merged) {
-    ctx.progress(total, total, "PDF mentése…");
+    ctx.progress(total, total, t().convert.saving);
     await yieldToBrowser();
     build.pruneDeadLinks(merged);
     files.push({ name: `${mergedName}.pdf`, blob: pdfBlob(await build.saveOutput(merged)), pages: merged.getPageCount() });

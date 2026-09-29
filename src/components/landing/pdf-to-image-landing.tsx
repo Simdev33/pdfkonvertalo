@@ -1,50 +1,30 @@
 import { Gauge, KeyRound, ListChecks, Printer } from "lucide-react";
+import type { Locale } from "@/i18n/config";
+import { SITE } from "@/i18n/dictionaries";
 import { Backdrop, FeatureGrid, Faq, Footer, Hero, Privacy } from "./sections";
 import { PdfDropzone } from "./tool-dropzones";
 
-const FEATURES = [
-  { icon: <ListChecks />, title: "Oldalválasztás", text: "Az összes oldalt vagy csak a kijelölteket alakítsd képpé – kattintással, Shift-tel vagy oldalszámokkal." },
-  { icon: <Printer />, title: "Nyomdai felbontás", text: "72-től 600 DPI-ig. A képekbe a felbontás is bekerül, így nyomtatáskor valós méretűek lesznek." },
-  { icon: <KeyRound />, title: "Védett PDF-ek", text: "A jogosultságokkal védett PDF-ekkel is működik, a jelszavasoknál pedig helyben elkéri a jelszót." },
-  { icon: <Gauge />, title: "Gyors és helyi", text: "A Mozilla pdf.js motorja rajzolja az oldalakat, közvetlenül a böngésződben – feltöltés nélkül." },
-];
+// Icons in the order of the dictionary's features.
+const FEATURE_ICONS = [<ListChecks key="pages" />, <Printer key="print" />, <KeyRound key="protected" />, <Gauge key="fast" />];
 
-const FAQ = [
-  {
-    q: "JPG-t vagy PNG-t válasszak?",
-    a: "Fotókat és vegyes tartalmat tartalmazó oldalakhoz a JPG kisebb fájlt ad. Szöveghez, ábrákhoz, képernyőképekhez a PNG élesebb, mert veszteségmentes.",
-  },
-  {
-    q: "Mekkora felbontás kell?",
-    a: "Képernyőre és weboldalra 72–150 DPI elég. Nyomtatáshoz 300 DPI az ajánlott, különösen apró betűs vagy részletes oldalaknál pedig 600 DPI.",
-  },
-  {
-    q: "Feltöltődik a PDF valahová?",
-    a: "Nem. Az oldalak megjelenítése és a képek elkészítése is a böngésződben történik.",
-  },
-];
-
-export function PdfToImageLanding() {
+export function PdfToImageLanding({ locale }: { locale: Locale }) {
+  const { pdfToImage: text, sections } = SITE[locale];
   return (
     <div className="relative overflow-x-clip">
       <Backdrop />
-      <Hero
-        title="PDF-ből kép:"
-        accent="JPG vagy PNG, egy kattintással."
-        text="Minden oldalból éles kép, 72–600 DPI felbontásban, akár csak a kiválasztott oldalakból. A PDF végig a gépeden marad."
-      >
+      <Hero title={text.title} accent={text.accent} text={text.text} badge={sections.badge}>
         <PdfDropzone />
       </Hero>
       <section className="relative mx-auto max-w-6xl px-5 py-16">
-        <FeatureGrid features={FEATURES} />
+        <FeatureGrid features={text.features.map((feature, index) => ({ ...feature, icon: FEATURE_ICONS[index] }))} />
       </section>
       <section className="relative mx-auto max-w-6xl px-5 py-16">
-        <Privacy />
+        <Privacy locale={locale} />
       </section>
       <section className="relative mx-auto max-w-3xl px-5 py-16">
-        <Faq items={FAQ} />
+        <Faq title={sections.faqTitle} items={text.faq} />
       </section>
-      <Footer />
+      <Footer locale={locale} />
     </div>
   );
 }
