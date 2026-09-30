@@ -22,9 +22,9 @@ export const en: SiteDict = {
     pdfToImageDescription:
       "Convert PDF pages to JPG or PNG images at 72–600 DPI, even just the pages you select. Fast, and the PDF never leaves your computer.",
     termsTitle: "Terms of Service",
-    termsDescription: "The terms of use of PDF Konvertáló.",
+    termsDescription: "The terms of use of ConvertPDFNow.",
     privacyTitle: "Privacy Policy",
-    privacyDescription: "What data PDF Konvertáló processes, why and for how long, and what rights you have.",
+    privacyDescription: "What data ConvertPDFNow processes, why and for how long, and what rights you have.",
     accountTitle: "My account",
     accountDescription: "Sign in with an e-mail code and manage your subscription.",
     ogBadge: "no watermark · {days} days for {trial}",

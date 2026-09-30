@@ -49,7 +49,9 @@ let pricesPromise: Promise<{ trial: string; monthly: string }> | null = null;
 
 async function ensureProduct() {
   try {
-    await stripe().products.retrieve(PRODUCT_ID);
+    // The name shows on the payment page, receipts and the customer portal.
+    const product = await stripe().products.retrieve(PRODUCT_ID);
+    if (product.name !== site.name) await stripe().products.update(PRODUCT_ID, { name: site.name });
   } catch (error) {
     if ((error as { code?: string }).code !== "resource_missing") throw error;
     await stripe().products.create({ id: PRODUCT_ID, name: site.name, description: "PDF converter – full access" });

@@ -25,9 +25,9 @@ export const hu = {
     pdfToImageDescription:
       "PDF oldalak átalakítása JPG vagy PNG képpé 72–600 DPI felbontásban, akár csak a kiválasztott oldalakból. Gyors, és a PDF végig a gépeden marad.",
     termsTitle: "Általános szerződési feltételek",
-    termsDescription: "A PDF Konvertáló használatának feltételei.",
+    termsDescription: "A ConvertPDFNow használatának feltételei.",
     privacyTitle: "Adatkezelési tájékoztató",
-    privacyDescription: "Milyen adatokat kezel a PDF Konvertáló, mire, meddig, és milyen jogaid vannak.",
+    privacyDescription: "Milyen adatokat kezel a ConvertPDFNow, mire, meddig, és milyen jogaid vannak.",
     accountTitle: "Fiókom",
     accountDescription: "Belépés e-mailes kóddal és az előfizetés kezelése.",
     ogBadge: "vízjel nélkül · {days} nap {trial}",

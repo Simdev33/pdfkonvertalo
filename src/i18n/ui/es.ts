@@ -251,10 +251,10 @@ export const es: UiDict = {
     card: "Tarjeta de débito o de crédito",
     pay: "Pedido con obligación de pago · {amount}",
     consent:
-      "Solicito el inicio inmediato del servicio. Reconozco que, si desisto del contrato dentro del plazo de desistimiento de 14 días, deberé pagar la parte proporcional del precio correspondiente al periodo ya utilizado.",
-    consentNeeded: "Para pagar, acepta la declaración anterior.",
+      "Acepto los [Términos y condiciones]({termsPath}) y la [Política de privacidad]({privacyPath}), y solicito el inicio inmediato del servicio.",
+    consentNeeded: "Para pagar, marca la casilla de arriba.",
     renewal:
-      "Si no cancelas la suscripción durante los primeros {days} días, a partir del día {next} continuará con una cuota mensual de {monthly}. Puedes cancelarla en cualquier momento, con un solo clic, en la página [Mi cuenta]({accountPath}). Al pagar, aceptas los [Términos y condiciones]({termsPath}) y la [Política de privacidad]({privacyPath}).",
+      "Si no cancelas la suscripción durante los primeros {days} días, a partir del día {next} continuará con una cuota mensual de {monthly}. Puedes cancelarla en cualquier momento, con un solo clic, en la página [Mi cuenta]({accountPath}). Si desistes dentro del plazo de desistimiento de 14 días, pagarás la parte proporcional del periodo ya utilizado.",
     ssl: "SSL de 256 bits",
     stripe: "Pago a través de Stripe",
     cancelAnytime: "Cancelación en cualquier momento",
@@ -318,7 +318,7 @@ export const es: UiDict = {
     markdownName: "notas-del-proyecto.md",
     markdown: `# Notas del proyecto
 
-Este archivo está en formato **Markdown**. PDF Konvertáló conserva los encabezados, el *énfasis*, el \`código\` y los [enlaces](https://example.com).
+Este archivo está en formato **Markdown**. ConvertPDFNow conserva los encabezados, el *énfasis*, el \`código\` y los [enlaces](https://example.com).
 
 ## Tareas pendientes
 
@@ -339,7 +339,7 @@ Este archivo está en formato **Markdown**. PDF Konvertáló conserva los encabe
 | Pruebas | 8 horas | 400 € |
 
 \`\`\`json
-{ "proyecto": "PDF Konvertáló", "estado": "terminado" }
+{ "proyecto": "ConvertPDFNow", "estado": "terminado" }
 \`\`\`
 `,
     csvName: "lista-de-precios.csv",

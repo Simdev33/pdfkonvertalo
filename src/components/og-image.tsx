@@ -1,6 +1,6 @@
 /**
  * The social sharing image, rendered per language by the opengraph-image
- * routes of app/(hu) and app/[lang].
+ * routes of app/(en) and app/[lang].
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -41,24 +41,18 @@ export async function renderOgImage(locale: Locale) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 20,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "linear-gradient(135deg, #6d66f6, #4338ca)",
-            }}
-          >
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-              <path d="M14 3v5h5" />
-              <path d="M9 14.5h6M12.5 12l2.5 2.5-2.5 2.5" />
+          {/* The same drawing as src/app/icon.svg. */}
+          <div style={{ width: 72, height: 72, borderRadius: 17, display: "flex", background: "linear-gradient(135deg, #8b7cf8, #4338ca)" }}>
+            <svg width="72" height="72" viewBox="0 0 64 64">
+              <path d="M20.5 9H37l11 11v30.5a4.5 4.5 0 0 1-4.5 4.5h-23a4.5 4.5 0 0 1-4.5-4.5v-37A4.5 4.5 0 0 1 20.5 9z" fill="#fff" />
+              <path d="M37 9v8a3 3 0 0 0 3 3h8z" fill="#cfcbff" />
+              <path d="M35.5 19 22.5 37.5H31L28.5 50 41.5 31.5H33z" fill="#4f46e5" />
             </svg>
           </div>
-          <div style={{ fontSize: 40, fontWeight: 700 }}>{site.name}</div>
+          <div style={{ display: "flex", fontSize: 40, fontWeight: 700 }}>
+            <span>ConvertPDF</span>
+            <span style={{ color: "#a5a1ff" }}>Now</span>
+          </div>
           <div style={{ marginLeft: "auto", padding: "8px 20px", borderRadius: 999, background: "rgba(60, 207, 120, 0.14)", color: "#7ee2a8", fontSize: 24 }}>
             {fmt(meta.ogBadge, priceVars(INTL_LOCALE[locale]))}
           </div>

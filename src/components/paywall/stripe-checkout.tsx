@@ -17,7 +17,11 @@ function stripeFor(locale: Locale) {
   const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   if (!key) return null;
   let promise = stripes.get(locale);
-  if (!promise) stripes.set(locale, (promise = loadStripe(key, { locale: locale as StripeConstructorOptions["locale"] })));
+  if (!promise) {
+    // developerTools: with test keys Stripe.js would pin its "stripe >" helper badge to the corner of every page.
+    promise = loadStripe(key, { locale: locale as StripeConstructorOptions["locale"], developerTools: { assistant: { enabled: false } } });
+    stripes.set(locale, promise);
+  }
   return promise;
 }
 

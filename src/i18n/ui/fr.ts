@@ -248,10 +248,10 @@ export const fr: UiDict = {
     card: "Carte bancaire ou de crédit",
     pay: "Commander avec obligation de paiement · {amount}",
     consent:
-      "Je demande que l'exécution du service commence immédiatement. Je reconnais que, si je me rétracte dans le délai de rétractation de 14 jours, je devrai payer un montant proportionnel à la période déjà utilisée.",
-    consentNeeded: "Pour payer, veuillez accepter la déclaration ci-dessus.",
+      "J'accepte les [CGU]({termsPath}) et la [Politique de confidentialité]({privacyPath}), et je demande que l'exécution du service commence immédiatement.",
+    consentNeeded: "Pour payer, veuillez cocher la case ci-dessus.",
     renewal:
-      "Si vous ne résiliez pas pendant les {days} premiers jours, l'abonnement se poursuit à partir du {next}e jour au tarif mensuel de {monthly}. Vous pouvez résilier à tout moment, en un clic, sur la page [Mon compte]({accountPath}). En payant, vous acceptez les [CGU]({termsPath}) et la [Politique de confidentialité]({privacyPath}).",
+      "Si vous ne résiliez pas pendant les {days} premiers jours, l'abonnement se poursuit à partir du {next}e jour au tarif mensuel de {monthly}. Vous pouvez résilier à tout moment, en un clic, sur la page [Mon compte]({accountPath}). Si vous vous rétractez dans le délai de rétractation de 14 jours, vous payez un montant proportionnel à la période déjà utilisée.",
     ssl: "SSL 256 bits",
     stripe: "Paiement via Stripe",
     cancelAnytime: "Résiliable à tout moment",
@@ -315,7 +315,7 @@ export const fr: UiDict = {
     markdownName: "notes-de-projet.md",
     markdown: `# Notes de projet
 
-Ce fichier est au format **Markdown**. PDF Konvertáló conserve les titres, les *mises en valeur*, le \`code\` et les [liens](https://example.com).
+Ce fichier est au format **Markdown**. ConvertPDFNow conserve les titres, les *mises en valeur*, le \`code\` et les [liens](https://example.com).
 
 ## À faire
 
@@ -336,7 +336,7 @@ Ce fichier est au format **Markdown**. PDF Konvertáló conserve les titres, les
 | Tests | 8 h | 560 € |
 
 \`\`\`json
-{ "projet": "PDF Konvertáló", "statut": "terminé" }
+{ "projet": "ConvertPDFNow", "statut": "terminé" }
 \`\`\`
 `,
     csvName: "liste-de-prix.csv",

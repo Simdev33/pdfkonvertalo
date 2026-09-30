@@ -245,10 +245,10 @@ export const en: UiDict = {
     card: "Debit or credit card",
     pay: "Order with obligation to pay · {amount}",
     consent:
-      "I request that the service start immediately. I acknowledge that if I withdraw within the 14-day withdrawal period, I must pay a proportionate amount for the period already used.",
-    consentNeeded: "To pay, please accept the statement above.",
+      "I accept the [Terms of Service]({termsPath}) and the [Privacy Policy]({privacyPath}), and I request that the service start immediately.",
+    consentNeeded: "To pay, please tick the box above.",
     renewal:
-      "If you don't cancel within the first {days} days, your subscription continues from day {next} for a monthly fee of {monthly}. You can cancel at any time on the [My account]({accountPath}) page, in one click. By paying, you accept the [Terms of Service]({termsPath}) and the [Privacy Policy]({privacyPath}).",
+      "If you don't cancel within the first {days} days, your subscription continues from day {next} for a monthly fee of {monthly}. You can cancel at any time on the [My account]({accountPath}) page, in one click. If you withdraw within the 14-day withdrawal period, you pay a proportionate amount for the period already used.",
     ssl: "256-bit SSL",
     stripe: "Payment via Stripe",
     cancelAnytime: "Cancel anytime",
@@ -312,7 +312,7 @@ export const en: UiDict = {
     markdownName: "project-notes.md",
     markdown: `# Project notes
 
-This file is in **Markdown** format. PDF Konvertáló keeps the headings, *emphasis*, \`code\` and [links](https://example.com).
+This file is in **Markdown** format. ConvertPDFNow keeps the headings, *emphasis*, \`code\` and [links](https://example.com).
 
 ## To do
 
@@ -333,7 +333,7 @@ This file is in **Markdown** format. PDF Konvertáló keeps the headings, *empha
 | Testing | 8 hours | $400 |
 
 \`\`\`json
-{ "project": "PDF Konvertáló", "status": "done" }
+{ "project": "ConvertPDFNow", "status": "done" }
 \`\`\`
 `,
     csvName: "price-list.csv",

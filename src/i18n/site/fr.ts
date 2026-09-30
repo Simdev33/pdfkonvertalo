@@ -22,9 +22,9 @@ export const fr: SiteDict = {
     pdfToImageDescription:
       "Convertissez les pages d'un PDF en images JPG ou PNG, de 72 à 600 DPI, y compris pour les seules pages sélectionnées. Rapide, et le PDF reste sur votre ordinateur du début à la fin.",
     termsTitle: "Conditions générales d'utilisation",
-    termsDescription: "Les conditions d'utilisation de PDF Konvertáló.",
+    termsDescription: "Les conditions d'utilisation de ConvertPDFNow.",
     privacyTitle: "Politique de confidentialité",
-    privacyDescription: "Quelles données PDF Konvertáló traite, dans quel but, pendant combien de temps, et quels sont vos droits.",
+    privacyDescription: "Quelles données ConvertPDFNow traite, dans quel but, pendant combien de temps, et quels sont vos droits.",
     accountTitle: "Mon compte",
     accountDescription: "Connexion par code envoyé par e-mail et gestion de l'abonnement.",
     ogBadge: "sans filigrane · {days} jours pour {trial}",

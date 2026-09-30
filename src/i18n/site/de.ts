@@ -22,9 +22,9 @@ export const de: SiteDict = {
     pdfToImageDescription:
       "PDF-Seiten in JPG- oder PNG-Bilder umwandeln, mit 72–600 DPI Auflösung, auf Wunsch nur die ausgewählten Seiten. Schnell, und das PDF bleibt die ganze Zeit auf Ihrem Gerät.",
     termsTitle: "Allgemeine Geschäftsbedingungen",
-    termsDescription: "Die Bedingungen für die Nutzung von PDF Konvertáló.",
+    termsDescription: "Die Bedingungen für die Nutzung von ConvertPDFNow.",
     privacyTitle: "Datenschutzerklärung",
-    privacyDescription: "Welche Daten PDF Konvertáló verarbeitet, wozu und wie lange, und welche Rechte Sie haben.",
+    privacyDescription: "Welche Daten ConvertPDFNow verarbeitet, wozu und wie lange, und welche Rechte Sie haben.",
     accountTitle: "Mein Konto",
     accountDescription: "Anmeldung mit E-Mail-Code und Verwaltung des Abonnements.",
     ogBadge: "ohne Wasserzeichen · {days} Tage für {trial}",

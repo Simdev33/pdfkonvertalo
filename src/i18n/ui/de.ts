@@ -248,10 +248,10 @@ export const de: UiDict = {
     card: "Debit- oder Kreditkarte",
     pay: "Zahlungspflichtig bestellen · {amount}",
     consent:
-      "Ich verlange, dass mit der Leistung sofort begonnen wird. Mir ist bekannt, dass ich bei einem Widerruf innerhalb der 14-tägigen Widerrufsfrist für den bereits in Anspruch genommenen Zeitraum einen anteiligen Betrag (Wertersatz) zahlen muss.",
-    consentNeeded: "Bitte bestätigen Sie für die Zahlung die obige Erklärung.",
+      "Ich akzeptiere die [AGB]({termsPath}) und die [Datenschutzerklärung]({privacyPath}) und verlange, dass mit der Leistung sofort begonnen wird.",
+    consentNeeded: "Bitte setzen Sie für die Zahlung oben das Häkchen.",
     renewal:
-      "Wenn Sie nicht innerhalb der ersten {days} Tage kündigen, wird das Abonnement ab dem {next}. Tag für {monthly} pro Monat fortgesetzt. Sie können jederzeit mit einem Klick auf der Seite [Mein Konto]({accountPath}) kündigen. Mit der Zahlung akzeptieren Sie die [AGB]({termsPath}) und die [Datenschutzerklärung]({privacyPath}).",
+      "Wenn Sie nicht innerhalb der ersten {days} Tage kündigen, wird das Abonnement ab dem {next}. Tag für {monthly} pro Monat fortgesetzt. Sie können jederzeit mit einem Klick auf der Seite [Mein Konto]({accountPath}) kündigen. Bei einem Widerruf innerhalb der 14-tägigen Widerrufsfrist zahlen Sie für den bereits in Anspruch genommenen Zeitraum einen anteiligen Betrag (Wertersatz).",
     ssl: "256-Bit-SSL",
     stripe: "Zahlung über Stripe",
     cancelAnytime: "Jederzeit kündbar",
@@ -315,7 +315,7 @@ export const de: UiDict = {
     markdownName: "projektnotizen.md",
     markdown: `# Projektnotizen
 
-Diese Datei liegt im **Markdown**-Format vor. PDF Konvertáló übernimmt Überschriften, *Hervorhebungen*, \`Code\` und [Links](https://example.com).
+Diese Datei liegt im **Markdown**-Format vor. ConvertPDFNow übernimmt Überschriften, *Hervorhebungen*, \`Code\` und [Links](https://example.com).
 
 ## Aufgaben
 
@@ -336,7 +336,7 @@ Diese Datei liegt im **Markdown**-Format vor. PDF Konvertáló übernimmt Übers
 | Tests | 8 Std. | 576 € |
 
 \`\`\`json
-{ "projekt": "PDF Konvertáló", "status": "fertig" }
+{ "projekt": "ConvertPDFNow", "status": "fertig" }
 \`\`\`
 `,
     csvName: "preisliste.csv",

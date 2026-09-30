@@ -298,7 +298,13 @@ function PaymentPanel({ paywall }: { paywall: PaywallState }) {
                       }}
                       className="mt-0.5 size-4 shrink-0 accent-primary"
                     />
-                    <span>{text.consent}</span>
+                    <span>
+                      <LinkText
+                        text={fmt(text.consent, { termsPath: pathFor("terms", locale), privacyPath: pathFor("privacy", locale) })}
+                        className="font-medium text-primary underline underline-offset-2"
+                        newTab
+                      />
+                    </span>
                   </label>
                   {consentWarning && !consent && <p className="text-sm text-danger">{text.consentNeeded}</p>}
                   <p className="pt-2 text-xs font-semibold tracking-wider text-fg-subtle uppercase">{text.methods}</p>

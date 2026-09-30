@@ -1,4 +1,4 @@
-# PDF Konvertáló
+# ConvertPDFNow (convertpdfnow.com)
 
 Profi PDF konvertáló Next.js-ben, öt nyelven (fő nyelv az angol, továbbá magyar, német, francia, spanyol). A képek, szöveges fájlok és PDF-ek feldolgozása **a böngészőben** történik – ezek nem kerülnek szerverre. Egyedül a Word-, Excel- és PowerPoint-fájlokat alakítja át a szerver (lásd lent).
 
@@ -78,7 +78,9 @@ Majd nyisd meg: http://localhost:3000
 
 A `scripts/copy-assets.mjs` (automatikusan fut `install`, `dev` és `build` előtt) a pdf.js workerét és adatfájljait a `public/pdfjs/<verzió>/`, a Noto betűket a `public/fonts/` mappába másolja.
 
-Élesítéskor állítsd be a `NEXT_PUBLIC_SITE_URL` környezeti változót (pl. `https://pdfkonvertalo.hu`) a helyes canonical-, `hreflang`-, sitemap- és Open Graph-linkekhez. Ha nincs megadva, Vercelen a projekt éles domainje (`VERCEL_PROJECT_PRODUCTION_URL`) lesz az alapcím.
+Az ikon forrása a `src/app/icon.svg` (ez a favicon is); ha módosítod, az `npm run icons` újragenerálja belőle a `favicon.ico`-t, az `apple-icon.png`-t és a manifest ikonjait (`public/icon-192.png`, `public/icon-512.png`). A fejléc logója (`src/components/brand.tsx`) és a megosztási kép (`src/components/og-image.tsx`) ugyanezt a rajzot használja.
+
+Élesítéskor állítsd be a `NEXT_PUBLIC_SITE_URL` környezeti változót (`https://convertpdfnow.com`) a helyes canonical-, `hreflang`-, sitemap- és Open Graph-linkekhez. Ha nincs megadva, Vercelen a projekt éles domainje (`VERCEL_PROJECT_PRODUCTION_URL`) lesz az alapcím.
 
 Az ÁSZF és az adatkezelési tájékoztató üzemeltetői adatai (név, cím, e-mail, nyilvántartási szám, adószám) a `src/lib/site.ts` `operator` mezőjében vannak; ami üres, az a jogi oldalakon kiemelt „kitöltendő” jelöléssel látszik. Ugyanitt van a hatálybalépés dátuma (`legalEffective`).
 
@@ -91,7 +93,7 @@ A környezeti változók listája a `.env.example`-ben van (helyben: `.env.local
 | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe-kulcsok (tesztre `sk_test_…` / `pk_test_…`) |
 | `SESSION_SECRET` | a belépési sütik aláírása (hosszú véletlen szöveg) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | belépési kódok e-mailben ([Resend](https://resend.com)); kulcs nélkül fejlesztéskor a kód a szervernaplóba kerül |
-| `STRIPE_PRICE_TRIAL`, `STRIPE_PRICE_MONTHLY` | nem kötelező: meglévő Stripe-árak; üresen az app első használatkor létrehozza a „PDF Konvertáló” terméket és a két árat (1,00 € egyszeri, 9,90 €/hó) |
+| `STRIPE_PRICE_TRIAL`, `STRIPE_PRICE_MONTHLY` | nem kötelező: meglévő Stripe-árak; üresen az app első használatkor létrehozza a „ConvertPDFNow” terméket és a két árat (1,00 € egyszeri, 9,90 €/hó) |
 
 Működés:
 

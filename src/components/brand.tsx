@@ -1,18 +1,18 @@
-import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
+/** The page-with-a-bolt mark; the same drawing as src/app/icon.svg (the favicon). */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "relative grid size-8 place-items-center rounded-[10px] bg-linear-to-br from-[#6d66f6] to-[#4338ca] text-white shadow-sm shadow-primary/30 ring-1 ring-white/15 ring-inset",
+        "relative block size-8 overflow-hidden rounded-[7.5px] bg-linear-to-br from-[#8b7cf8] to-[#4338ca] shadow-sm shadow-primary/30",
         className,
       )}
     >
-      <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-        <path d="M14 3v5h5" />
-        <path d="M9 14.5h6M12.5 12l2.5 2.5-2.5 2.5" />
+      <svg viewBox="0 0 64 64" className="size-full" aria-hidden>
+        <path d="M20.5 9H37l11 11v30.5a4.5 4.5 0 0 1-4.5 4.5h-23a4.5 4.5 0 0 1-4.5-4.5v-37A4.5 4.5 0 0 1 20.5 9z" fill="#fff" />
+        <path d="M37 9v8a3 3 0 0 0 3 3h8z" fill="#cfcbff" />
+        <path d="M35.5 19 22.5 37.5H31L28.5 50 41.5 31.5H33z" fill="#4f46e5" />
       </svg>
     </span>
   );
@@ -23,7 +23,9 @@ export function Logo({ className, compact }: { className?: string; compact?: boo
   return (
     <span className={cn("flex items-center gap-2.5", className)}>
       <LogoMark />
-      <span className={cn("text-[15px] font-semibold tracking-tight text-fg", compact && "hidden sm:inline")}>{site.name}</span>
+      <span className={cn("text-[15px] font-semibold tracking-tight text-fg", compact && "hidden sm:inline")}>
+        ConvertPDF<span className="text-primary">Now</span>
+      </span>
     </span>
   );
 }

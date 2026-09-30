@@ -1,5 +1,5 @@
 export const site = {
-  name: "PDF Konvertáló",
+  name: "ConvertPDFNow",
   /** Canonical origin for metadata, hreflang and the sitemap; on Vercel it defaults to the production domain. */
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??

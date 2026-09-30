@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import { site } from "@/lib/site";
 import "./globals.css";
 
 // Unmatched URLs have no language, so this page speaks English and Hungarian.
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
 
-export const metadata: Metadata = { title: "404 – PDF Konvertáló" };
+export const metadata: Metadata = { title: `404 – ${site.name}` };
 
 const themeScript = `(function(){try{var t=localStorage.getItem("theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d)}catch(e){}})()`;
 

@@ -249,10 +249,10 @@ export const hu = {
     card: "Bank- vagy hitelkártya",
     pay: "Megrendelés fizetési kötelezettséggel · {amount}",
     consent:
-      "Kérem a szolgáltatás azonnali megkezdését. Tudomásul veszem, hogy ha a 14 napos elállási határidőn belül elállok, a már igénybe vett időszak arányos díját meg kell fizetnem.",
-    consentNeeded: "A fizetéshez fogadd el a fenti nyilatkozatot.",
+      "Elfogadom az [ÁSZF-et]({termsPath}) és az [Adatkezelési tájékoztatót]({privacyPath}), és kérem a szolgáltatás azonnali megkezdését.",
+    consentNeeded: "A fizetéshez pipáld be a fenti négyzetet.",
     renewal:
-      "Ha az első {days} nap alatt nem mondod le, az előfizetés a {next}. naptól havi {monthly} díjjal folytatódik. Bármikor lemondhatod a [Fiókom]({accountPath}) oldalon, egy kattintással. A fizetéssel elfogadod az [ÁSZF-et]({termsPath}) és az [Adatkezelési tájékoztatót]({privacyPath}).",
+      "Ha az első {days} nap alatt nem mondod le, az előfizetés a {next}. naptól havi {monthly} díjjal folytatódik. Bármikor lemondhatod a [Fiókom]({accountPath}) oldalon, egy kattintással. Ha a 14 napos elállási határidőn belül elállsz, a már igénybe vett időszak arányos díját kell megfizetned.",
     ssl: "256 bites SSL",
     stripe: "Fizetés a Stripe-on keresztül",
     cancelAnytime: "Bármikor lemondható",
@@ -316,7 +316,7 @@ export const hu = {
     markdownName: "projektjegyzet.md",
     markdown: `# Projektjegyzet
 
-Ez a fájl **Markdown** formátumú. A PDF Konvertáló megtartja a címsorokat, a *kiemeléseket*, a \`kódot\` és a [hivatkozásokat](https://example.com).
+Ez a fájl **Markdown** formátumú. A ConvertPDFNow megtartja a címsorokat, a *kiemeléseket*, a \`kódot\` és a [hivatkozásokat](https://example.com).
 
 ## Teendők
 
@@ -337,7 +337,7 @@ Ez a fájl **Markdown** formátumú. A PDF Konvertáló megtartja a címsorokat,
 | Tesztelés | 8 óra | 96 000 Ft |
 
 \`\`\`json
-{ "projekt": "PDF Konvertáló", "állapot": "kész" }
+{ "projekt": "ConvertPDFNow", "állapot": "kész" }
 \`\`\`
 `,
     csvName: "arlista.csv",
