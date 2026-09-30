@@ -1,5 +1,5 @@
 import { fail, json, localeOf, readBody, returnUrl, text } from "@/lib/server/api";
-import { BillingError, customersFor, isEmail, normalizeEmail, PLAN, prices, stripe } from "@/lib/server/billing";
+import { BillingError, createCustomer, customersFor, isEmail, normalizeEmail, PLAN, prices, stripe } from "@/lib/server/billing";
 import { clientIp, limited } from "@/lib/server/rate-limit";
 
 /**
@@ -17,6 +17,8 @@ export async function POST(request: Request) {
     const customers = await customersFor(email);
     if (customers[0]?.access.active) return fail(locale, "alreadySubscribed", 409);
     const { trial, monthly } = await prices();
+    // New customers are created tagged with this app (the Stripe account is shared with other sites).
+    const customer = customers[0]?.customer.id ?? (await createCustomer(email, locale));
 
     // Stripe replaces the literal {CHECKOUT_SESSION_ID}, so it must not be URL-encoded.
     const back = returnUrl(request, body.returnPath);
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
         { price: trial, quantity: 1 },
       ],
       subscription_data: { trial_period_days: PLAN.trialDays, metadata: { app: "pdf-konvertalo" } },
-      ...(customers[0] ? { customer: customers[0].customer.id } : { customer_email: email }),
+      customer,
       billing_address_collection: "auto",
       return_url: `${back.toString()}${separator}checkout_session_id={CHECKOUT_SESSION_ID}`,
       metadata: { app: "pdf-konvertalo", locale },

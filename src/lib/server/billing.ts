@@ -12,6 +12,12 @@ import { site } from "@/lib/site";
 
 export { PLAN };
 
+/**
+ * The Stripe account is shared with other sites (e.g. DoneSignIn), so only
+ * objects of this app count: subscriptions tagged with this app (or on our
+ * product) and customers that are not tagged for another app.
+ */
+export const APP = "pdf-konvertalo";
 const PRODUCT_ID = "pdf_konvertalo";
 const LOOKUP = { trial: "pdf_konvertalo_trial_fee_eur_100", monthly: "pdf_konvertalo_monthly_eur_990" } as const;
 const PORTAL_TAG = "pdf-konvertalo";
@@ -112,6 +118,12 @@ const RANK: Record<string, number> = { trialing: 0, active: 0, past_due: 1, unpa
 // A short-lived cache: the header and every download ask for the same customer.
 const cache = new Map<string, { access: Access; until: number }>();
 
+const productOf = (item: Stripe.SubscriptionItem) => (typeof item.price.product === "string" ? item.price.product : item.price.product.id);
+
+/** A subscription of this app — never one of another site on the same Stripe account. */
+const isOurs = (subscription: Stripe.Subscription) =>
+  subscription.metadata?.app === APP || subscription.items.data.some((item) => productOf(item) === PRODUCT_ID);
+
 export function forgetAccess(customer: string) {
   cache.delete(customer);
 }
@@ -121,7 +133,7 @@ export async function accessFor(customer: string): Promise<Access> {
   if (cached && cached.until > Date.now()) return cached.access;
 
   const { data } = await stripe().subscriptions.list({ customer, status: "all", limit: 20 });
-  const best = [...data].sort((a, b) => (RANK[a.status] ?? 9) - (RANK[b.status] ?? 9) || b.created - a.created)[0];
+  const best = data.filter(isOurs).sort((a, b) => (RANK[a.status] ?? 9) - (RANK[b.status] ?? 9) || b.created - a.created)[0];
   const access: Access = best
     ? {
         active: ACTIVE.has(best.status),
@@ -140,9 +152,17 @@ export const isEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e
 
 /** Customers with this e-mail, the one with access (or the newest) first. */
 export async function customersFor(email: string) {
-  const { data } = await stripe().customers.list({ email: normalizeEmail(email), limit: 10 });
-  const withAccess = await Promise.all(data.filter((customer) => !customer.deleted).map(async (customer) => ({ customer, access: await accessFor(customer.id) })));
+  const { data } = await stripe().customers.list({ email: normalizeEmail(email), limit: 20 });
+  // Customers created by another app (metadata.app set to something else) are not ours.
+  const mine = data.filter((customer) => !customer.deleted && (!customer.metadata?.app || customer.metadata.app === APP));
+  const withAccess = await Promise.all(mine.map(async (customer) => ({ customer, access: await accessFor(customer.id) })));
   return withAccess.sort((a, b) => Number(b.access.active) - Number(a.access.active) || b.customer.created - a.customer.created);
+}
+
+/** A new customer tagged with this app, so other sites on the Stripe account can tell it apart. */
+export async function createCustomer(email: string, locale: string) {
+  const customer = await stripe().customers.create({ email: normalizeEmail(email), preferred_locales: [locale], metadata: { app: APP } });
+  return customer.id;
 }
 
 /* ------------------------------ customer portal --------------------------- */
