@@ -1,8 +1,10 @@
 /**
  * "Files → PDF" tool: importing inputs (with previews) and running the conversion.
  */
-import type { ConvertItem } from "@/lib/convert/engine";
+import { useAccount } from "@/lib/account";
+import type { ConvertItem, JobContext } from "@/lib/convert/engine";
 import { detectFormat } from "@/lib/convert/formats";
+import { deliver } from "@/lib/deliver";
 import { baseNameOf } from "@/lib/files";
 import { closeDocument, canvasToBlob, openDocument, PasswordError, releaseCanvas, renderPage } from "@/lib/pdf/pdfjs";
 import {
@@ -10,13 +12,15 @@ import {
   endJob,
   removeItem,
   requestPassword,
-  setResult,
+  setOptions,
   startJob,
   toast,
   updateItem,
   updateJob,
   useApp,
+  type ConversionSource,
   type Item,
+  type ResultState,
 } from "@/lib/store";
 import { INTL_LOCALE } from "@/i18n/config";
 import { fmt, plural } from "@/i18n/format";
@@ -81,11 +85,10 @@ async function processItem(item: Item) {
     }
 
     if (item.format.kind === "pdf" || item.format.kind === "office") {
-      const bytes =
-        item.format.kind === "office"
-          ? await (await import("@/lib/convert/office")).officeToPdf(item.file)
-          : new Uint8Array(await item.file.arrayBuffer());
-      let password: string | undefined;
+      // Office documents may come back as a first-page preview: the card still shows their real length.
+      const office = item.format.kind === "office" ? await (await import("@/lib/convert/office")).officeToPdf(item.file) : null;
+      const bytes = office ? office.bytes : new Uint8Array(await item.file.arrayBuffer());
+      let password = item.password;
       let pdf;
       for (;;) {
         try {
@@ -108,7 +111,11 @@ async function processItem(item: Item) {
         const url = URL.createObjectURL(await canvasToBlob(canvas, "image/jpeg", 0.85));
         releaseCanvas(canvas);
         if (!exists(item.id)) return URL.revokeObjectURL(url);
-        updateItem(item.id, { status: "ready", password, preview: { url, width: viewport.width, height: viewport.height, count: pdf.numPages } });
+        updateItem(item.id, {
+          status: "ready",
+          password,
+          preview: { url, width: viewport.width, height: viewport.height, count: office?.pages ?? pdf.numPages },
+        });
       } finally {
         void closeDocument(pdf);
       }
@@ -164,30 +171,20 @@ export async function runConversion() {
     return;
   }
 
-  const fileName = state.options.fileName.trim() || defaultOutputName(ready);
+  const source: ConversionSource = {
+    items: ready.map(({ id, file, name, format, rotation, password }): ConvertItem => ({ id, file, name, format, rotation, password })),
+    options: { ...state.options, fileName: state.options.fileName.trim() || defaultOutputName(ready) },
+    skipped: state.items.length - ready.length,
+  };
   const controller = new AbortController();
   startJob(t().convert.jobTitle, () => controller.abort());
-  const started = performance.now();
 
   try {
-    const { convertToPdf } = await import("@/lib/convert/engine");
-    const items: ConvertItem[] = ready.map(({ id, file, name, format, rotation, password }) => ({ id, file, name, format, rotation, password }));
-    const files = await convertToPdf(items, { ...state.options, fileName }, { signal: controller.signal, progress: updateJob });
-    const skipped = state.items.length - ready.length;
-    const { convert, files: filesText } = t();
-    const locale = runtimeLocale();
-    const notes: string[] = [];
-    if (state.options.output === "merge") {
-      notes.push(plural(locale, convert.mergedNote, files[0]?.pages ?? 0, { files: plural(locale, filesText.count, ready.length) }));
-    }
-    if (skipped) notes.push(plural(locale, convert.skippedNote, skipped));
-    setResult({
-      title: files.length === 1 ? convert.resultOne : plural(locale, convert.resultMany, files.length),
-      files,
-      archiveName: `${fileName}.zip`,
-      elapsed: performance.now() - started,
-      notes,
-    });
+    // Subscribers get office documents in full, even if their card was loaded before signing in.
+    const result = await buildResult(source, { signal: controller.signal, fullOffice: useAccount.getState().access?.active === true });
+    const office = source.items.filter((item) => item.format.kind === "office").map((item) => item.file);
+    const partial = office.length > 0 && (await (await import("@/lib/convert/office")).hasPreviews(office));
+    await deliver(result, partial ? source : undefined);
   } catch (error) {
     if (isAbortError(error)) toast(t().convert.cancelled);
     else {
@@ -197,4 +194,44 @@ export async function runConversion() {
   } finally {
     endJob();
   }
+}
+
+async function buildResult(source: ConversionSource, ctx: Omit<JobContext, "progress">): Promise<ResultState> {
+  const started = performance.now();
+  const { convertToPdf } = await import("@/lib/convert/engine");
+  const files = await convertToPdf(source.items, source.options, { ...ctx, progress: updateJob });
+  const { convert, files: filesText } = t();
+  const locale = runtimeLocale();
+  const notes: string[] = [];
+  if (source.options.output === "merge") {
+    notes.push(plural(locale, convert.mergedNote, files[0]?.pages ?? 0, { files: plural(locale, filesText.count, source.items.length) }));
+  }
+  if (source.skipped) notes.push(plural(locale, convert.skippedNote, source.skipped));
+  return {
+    title: files.length === 1 ? convert.resultOne : plural(locale, convert.resultMany, files.length),
+    files,
+    archiveName: `${source.options.fileName}.zip`,
+    elapsed: performance.now() - started,
+    notes,
+  };
+}
+
+/** After payment: the same conversion again, now with the office documents in full. */
+export async function convertInFull(source: ConversionSource) {
+  const controller = new AbortController();
+  startJob(t().convert.jobTitle, () => controller.abort());
+  try {
+    return await buildResult(source, { signal: controller.signal, fullOffice: true });
+  } finally {
+    endJob();
+  }
+}
+
+/** Puts the inputs of a conversion back into an empty workspace (keeping order, rotation and passwords). */
+export function restoreWorkspace(source: ConversionSource) {
+  if (useApp.getState().items.length) return;
+  const items: Item[] = source.items.map((item) => ({ ...item, id: newId(), size: item.file.size, status: "processing" }));
+  appendItems(items);
+  setOptions(source.options);
+  void runLimited(items, 3, processItem);
 }

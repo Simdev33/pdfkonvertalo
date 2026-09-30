@@ -8,8 +8,10 @@ import type { ReactNode } from "react";
 import { AppOverlays } from "@/components/app-overlays";
 import { Header } from "@/components/header";
 import { ThemeSync } from "@/components/theme-toggle";
-import { LOCALES, OG_LOCALE, type Locale } from "@/i18n/config";
+import { INTL_LOCALE, LOCALES, OG_LOCALE, type Locale } from "@/i18n/config";
 import { SITE, UI } from "@/i18n/dictionaries";
+import { fmt } from "@/i18n/format";
+import { priceVars } from "@/lib/plan";
 import { I18nProvider } from "@/i18n/provider";
 import { site } from "@/lib/site";
 import "@/app/globals.css";
@@ -29,7 +31,7 @@ export function rootMetadata(locale: Locale): Metadata {
   return {
     metadataBase: new URL(site.url),
     title: { default: `${site.name} – ${meta.tagline}`, template: `%s · ${site.name}` },
-    description: meta.description,
+    description: fmt(meta.description, priceVars(INTL_LOCALE[locale])),
     applicationName: site.name,
     keywords: meta.keywords,
     twitter: { card: "summary_large_image" },

@@ -52,6 +52,8 @@ export interface ConvertItem {
 export interface JobContext {
   signal: AbortSignal;
   progress(done: number, total: number, label?: string): void;
+  /** Fetch office documents again if only their first-page preview is at hand (see ./office). */
+  fullOffice?: boolean;
 }
 
 type Build = typeof import("@/lib/pdf/build");
@@ -114,8 +116,9 @@ class ImagePager {
   }
 }
 
-async function appendItem(doc: PDFDocument, pager: ImagePager, item: ConvertItem, options: ConvertOptions, build: Build, signal: AbortSignal) {
+async function appendItem(doc: PDFDocument, pager: ImagePager, item: ConvertItem, options: ConvertOptions, build: Build, ctx: JobContext) {
   const { format } = item;
+  const { signal } = ctx;
 
   if (format.kind === "image") {
     const { prepareImage } = await import("./images");
@@ -132,7 +135,9 @@ async function appendItem(doc: PDFDocument, pager: ImagePager, item: ConvertItem
 
   if (format.kind === "pdf" || format.kind === "office") {
     const bytes =
-      format.kind === "office" ? await (await import("./office")).officeToPdf(item.file) : new Uint8Array(await item.file.arrayBuffer());
+      format.kind === "office"
+        ? (await (await import("./office")).officeToPdf(item.file, { full: ctx.fullOffice })).bytes
+        : new Uint8Array(await item.file.arrayBuffer());
     const src = await build.loadSource(bytes, { password: item.password });
     for (const page of build.copyPages(src, doc, src.getPageIndices())) {
       build.rotatePage(page, item.rotation);
@@ -177,11 +182,11 @@ export async function convertToPdf(items: readonly ConvertItem[], options: Conve
     ctx.progress(index, total, item.name);
     try {
       if (merged && pager) {
-        await appendItem(merged, pager, item, options, build, ctx.signal);
+        await appendItem(merged, pager, item, options, build, ctx);
       } else {
         const name = baseNameOf(item.name);
         const doc = await build.createOutput(null, meta(name));
-        await appendItem(doc, new ImagePager(doc, options, build), item, options, build, ctx.signal);
+        await appendItem(doc, new ImagePager(doc, options, build), item, options, build, ctx);
         build.pruneDeadLinks(doc);
         files.push({ name: `${name}.pdf`, blob: pdfBlob(await build.saveOutput(doc)), pages: doc.getPageCount(), detail: item.name });
       }

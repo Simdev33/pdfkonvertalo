@@ -4,7 +4,7 @@ export const fr: SiteDict = {
   meta: {
     tagline: "Images, fichiers Office et texte en PDF",
     description:
-      "Convertisseur PDF gratuit et professionnel : convertissez en PDF des images JPG, PNG, HEIC, WebP, TIFF et SVG, des fichiers Word, Excel et PowerPoint ainsi que des fichiers TXT, CSV, Markdown et JSON, fusionnez des PDF et transformez des PDF en images. Les images, les textes et les PDF restent dans votre navigateur.",
+      "Convertisseur PDF professionnel : convertissez en PDF des images JPG, PNG, HEIC, WebP, TIFF et SVG, des fichiers Word, Excel et PowerPoint ainsi que des fichiers TXT, CSV, Markdown et JSON, fusionnez des PDF et transformez des PDF en images. Les images, les textes et les PDF restent dans votre navigateur. Accès complet pendant {days} jours pour {trial}.",
     keywords: [
       "convertisseur PDF",
       "image en PDF",
@@ -20,12 +20,14 @@ export const fr: SiteDict = {
     ],
     pdfToImageTitle: "PDF en image – JPG et PNG sans envoi de fichier",
     pdfToImageDescription:
-      "Convertissez les pages d'un PDF en images JPG ou PNG, de 72 à 600 DPI, y compris pour les seules pages sélectionnées. Gratuit, rapide, et le PDF reste sur votre ordinateur du début à la fin.",
+      "Convertissez les pages d'un PDF en images JPG ou PNG, de 72 à 600 DPI, y compris pour les seules pages sélectionnées. Rapide, et le PDF reste sur votre ordinateur du début à la fin.",
     termsTitle: "Conditions générales d'utilisation",
     termsDescription: "Les conditions d'utilisation de PDF Konvertáló.",
     privacyTitle: "Politique de confidentialité",
     privacyDescription: "Quelles données PDF Konvertáló traite, dans quel but, pendant combien de temps, et quels sont vos droits.",
-    ogBadge: "sans inscription ni filigrane",
+    accountTitle: "Mon compte",
+    accountDescription: "Connexion par code envoyé par e-mail et gestion de l'abonnement.",
+    ogBadge: "sans filigrane · {days} jours pour {trial}",
     ogTitle: "De vos images et fichiers",
     ogAccent: "un PDF pro en un instant.",
   },
@@ -34,7 +36,7 @@ export const fr: SiteDict = {
     badge: "Images et PDF sans envoi de fichier, dans votre navigateur",
     title: "De vos images et fichiers",
     accent: "un PDF pro en un instant.",
-    text: "Déposez vos photos, numérisations, fichiers Word, Excel et PowerPoint ou vos PDF, classez-les, et votre PDF est prêt en un clic. Sans inscription, sans filigrane.",
+    text: "Déposez vos photos, numérisations, fichiers Word, Excel et PowerPoint ou vos PDF, classez-les, et votre PDF est prêt en un clic, sans filigrane.",
     formatsLabel: "Formats pris en charge",
     featuresEyebrow: "Fonctionnalités",
     featuresTitle: "Tout ce qu'il faut à un convertisseur professionnel",
@@ -70,12 +72,32 @@ export const fr: SiteDict = {
     steps: [
       { title: "Déposez vos fichiers", text: "Images, fichiers Office et texte, PDF – même mélangés. Ctrl+V colle aussi une capture d'écran." },
       { title: "Classez et réglez", text: "Faites glisser les fichiers pour modifier l'ordre, faites-les pivoter, et choisissez le format de page, la marge et la qualité." },
-      { title: "Téléchargez le PDF", text: "Un seul PDF fusionné ou un PDF par fichier dans un ZIP – sans filigrane ni inscription." },
+      { title: "Téléchargez le PDF", text: "Un seul PDF fusionné ou un PDF par fichier dans un ZIP, sans filigrane. Les {days} premiers jours pour {trial}." },
     ],
+    pricingEyebrow: "Tarif",
+    pricingTitle: "Un seul abonnement, tout simple",
+    pricingText: "La conversion et l'aperçu sont gratuits ; l'abonnement n'est nécessaire que pour télécharger les fichiers créés.",
+    pricingTrial: "Accès complet pendant {days} jours",
+    pricingThen: "puis {monthly} par mois, jusqu'à votre résiliation",
+    pricingPoints: [
+      "Conversions et téléchargements illimités",
+      "Tous les formats : images, fichiers Office, texte, PDF",
+      "Sans filigrane, sans mot de passe ni inscription",
+      "Résiliable à tout moment, en un clic",
+    ],
+    pricingCta: "Commencer maintenant",
     faq: [
       {
         q: "Mes fichiers ne sont-ils vraiment pas envoyés sur un serveur ?",
         a: "Les images, les fichiers texte et les PDF, non : ils sont entièrement convertis par votre navigateur, et pas un seul octet n'est envoyé à un serveur. Vous pouvez le vérifier vous-même dans l'onglet Réseau des outils de développement de votre navigateur. Les fichiers Word, Excel et PowerPoint font exception : leur conversion fidèle nécessite un logiciel de bureautique, c'est pourquoi notre serveur les convertit en PDF, puis les supprime immédiatement après la conversion.",
+      },
+      {
+        q: "Combien ça coûte ?",
+        a: "La conversion et l'aperçu sont gratuits ; un abonnement est nécessaire pour télécharger les fichiers créés. Les {days} premiers jours coûtent {trial}, puis {monthly} par mois jusqu'à votre résiliation. Vous pouvez résilier à tout moment, en un clic, sur la page Mon compte ; l'accès est maintenu jusqu'à la fin de la période déjà payée.",
+      },
+      {
+        q: "Dois-je m'inscrire ?",
+        a: "Aucun mot de passe n'est nécessaire. Vous vous connectez avec l'adresse e-mail indiquée lors du paiement : sur un autre appareil, cliquez sur le bouton Connexion pour recevoir un code à 6 chiffres par e-mail, et vous pouvez aussitôt utiliser le service.",
       },
       {
         q: "Quels fichiers puis-je convertir en PDF ?",
@@ -134,7 +156,7 @@ export const fr: SiteDict = {
     stats: [
       { value: "0 octet", label: "envoyé pour les images et les PDF" },
       { value: "Immédiate", label: "suppression des fichiers Office du serveur" },
-      { value: "Sans", label: "inscription ni filigrane" },
+      { value: "Sans", label: "filigrane ni inscription avec mot de passe" },
       { value: "pdf.js", label: "le moteur de rendu de Mozilla" },
     ],
     faqTitle: "Questions fréquentes",
@@ -161,5 +183,23 @@ export const fr: SiteDict = {
     unavailable: "Le service de conversion de documents est actuellement indisponible.",
     noEngine: "Aucun convertisseur n'est disponible sur ce serveur pour ce fichier (LibreOffice, Gotenberg ou Microsoft {app}).",
     unexpected: "Une erreur inattendue s'est produite pendant la conversion.",
+    invalidEmail: "Veuillez saisir une adresse e-mail valide.",
+    rateLimited: "Trop de tentatives. Patientez quelques minutes, puis réessayez.",
+    billingUnavailable: "Le service de paiement est actuellement indisponible. Réessayez plus tard.",
+    checkoutFailed: "Impossible de lancer le paiement. Veuillez réessayer.",
+    alreadySubscribed: "Un abonnement actif est déjà associé à cette adresse e-mail. Connectez-vous avec le code que nous vous envoyons par e-mail.",
+    paymentIncomplete: "Le paiement n'a pas abouti.",
+    notSignedIn: "Pour cela, vous devez vous connecter.",
+    codeInvalid: "Code incorrect. Vérifiez-le, puis réessayez.",
+    codeExpired: "Le code a expiré. Demandez-en un nouveau.",
+    codeLocked: "Trop de tentatives erronées. Demandez un nouveau code.",
+    emailFailed: "Impossible d'envoyer l'e-mail. Réessayez plus tard.",
+  },
+
+  email: {
+    subject: "{code} – votre code de connexion ({site})",
+    intro: "Utilisez ce code pour vous connecter sur {site} :",
+    validity: "Le code est valable {minutes} minutes.",
+    ignore: "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail sans crainte.",
   },
 };

@@ -4,7 +4,7 @@ export const en: SiteDict = {
   meta: {
     tagline: "Images, Office and text files to PDF",
     description:
-      "Free, professional PDF converter: convert JPG, PNG, HEIC, WebP, TIFF and SVG images, Word, Excel and PowerPoint files, and TXT, CSV, Markdown and JSON files to PDF, merge PDFs and turn PDFs into images. Your images, texts and PDFs stay in your browser.",
+      "Professional PDF converter: convert JPG, PNG, HEIC, WebP, TIFF and SVG images, Word, Excel and PowerPoint files, and TXT, CSV, Markdown and JSON files to PDF, merge PDFs and turn PDFs into images. Your images, texts and PDFs stay in your browser. {days}-day full access for {trial}.",
     keywords: [
       "PDF converter",
       "image to PDF",
@@ -20,12 +20,14 @@ export const en: SiteDict = {
     ],
     pdfToImageTitle: "PDF to image – JPG and PNG without uploading",
     pdfToImageDescription:
-      "Convert PDF pages to JPG or PNG images at 72–600 DPI, even just the pages you select. Free, fast, and the PDF never leaves your computer.",
+      "Convert PDF pages to JPG or PNG images at 72–600 DPI, even just the pages you select. Fast, and the PDF never leaves your computer.",
     termsTitle: "Terms of Service",
     termsDescription: "The terms of use of PDF Konvertáló.",
     privacyTitle: "Privacy Policy",
     privacyDescription: "What data PDF Konvertáló processes, why and for how long, and what rights you have.",
-    ogBadge: "no sign-up, no watermark",
+    accountTitle: "My account",
+    accountDescription: "Sign in with an e-mail code and manage your subscription.",
+    ogBadge: "no watermark · {days} days for {trial}",
     ogTitle: "Images and files into",
     ogAccent: "professional PDFs in seconds.",
   },
@@ -34,7 +36,7 @@ export const en: SiteDict = {
     badge: "Images and PDFs without uploading, right in your browser",
     title: "Images and files into",
     accent: "professional PDFs in seconds.",
-    text: "Drop in your photos, scans, Word, Excel and PowerPoint files or PDFs, put them in order, and your PDF is ready in one click. No sign-up, no watermark.",
+    text: "Drop in your photos, scans, Word, Excel and PowerPoint files or PDFs, put them in order, and your PDF is ready in one click, with no watermark.",
     formatsLabel: "Supported formats",
     featuresEyebrow: "Features",
     featuresTitle: "Everything a professional converter needs",
@@ -70,12 +72,32 @@ export const en: SiteDict = {
     steps: [
       { title: "Drop in your files", text: "Images, Office and text files, PDFs – even mixed together. Ctrl+V pastes screenshots too." },
       { title: "Arrange and adjust", text: "Drag to change the order, rotate, and choose the page size, margins and quality." },
-      { title: "Download your PDF", text: "A single merged PDF, or a separate PDF for each file in a ZIP – no watermark, no sign-up." },
+      { title: "Download your PDF", text: "A single merged PDF, or a separate PDF for each file in a ZIP, with no watermark. The first {days} days cost {trial}." },
     ],
+    pricingEyebrow: "Price",
+    pricingTitle: "One simple subscription",
+    pricingText: "Converting and previewing are free of charge; you only need a subscription to download the finished files.",
+    pricingTrial: "{days}-day full access",
+    pricingThen: "then {monthly} per month until you cancel",
+    pricingPoints: [
+      "Unlimited conversions and downloads",
+      "Every format: images, Office files, text, PDF",
+      "No watermark, no password, no sign-up",
+      "Cancel anytime, in one click",
+    ],
+    pricingCta: "Get started now",
     faq: [
       {
         q: "Are my files really not uploaded?",
         a: "Images, text files and PDFs are not: your browser converts them entirely on its own, and not a single byte of them reaches a server. You can check this yourself on the Network tab of your browser's developer tools. The exception is Word, Excel and PowerPoint files: converting them accurately requires an office application, so our server converts them to PDF and deletes them immediately after the conversion.",
+      },
+      {
+        q: "How much does it cost?",
+        a: "Converting and previewing are free of charge; you need a subscription to download the finished files. The first {days} days cost {trial}, then {monthly} per month until you cancel. You can cancel at any time on the My account page, in one click; you keep access until the end of the period you have already paid for.",
+      },
+      {
+        q: "Do I need to sign up?",
+        a: "No password is needed. You sign in with the e-mail address you enter when paying: on another device, use the Sign in button to request a 6-digit code by e-mail, and you can start using it right away.",
       },
       {
         q: "What files can I convert to PDF?",
@@ -134,7 +156,7 @@ export const en: SiteDict = {
     stats: [
       { value: "0 bytes", label: "uploaded for images and PDFs" },
       { value: "Instantly", label: "Office files are deleted from the server" },
-      { value: "No", label: "sign-up or watermark" },
+      { value: "No", label: "watermark or password sign-up" },
       { value: "pdf.js", label: "Mozilla's rendering engine" },
     ],
     faqTitle: "Frequently asked questions",
@@ -161,5 +183,23 @@ export const en: SiteDict = {
     unavailable: "The document conversion service is currently unavailable.",
     noEngine: "This server has no converter for this file (LibreOffice, Gotenberg or Microsoft {app}).",
     unexpected: "An unexpected error occurred during the conversion.",
+    invalidEmail: "Enter a valid e-mail address.",
+    rateLimited: "Too many attempts. Wait a few minutes and try again.",
+    billingUnavailable: "The payment service is currently unavailable. Try again later.",
+    checkoutFailed: "The payment could not be started. Try again.",
+    alreadySubscribed: "This e-mail address already has an active subscription. Sign in with the code we send you by e-mail.",
+    paymentIncomplete: "The payment was not completed.",
+    notSignedIn: "You need to sign in to do this.",
+    codeInvalid: "Wrong code. Check it and try again.",
+    codeExpired: "The code has expired. Request a new one.",
+    codeLocked: "Too many wrong attempts. Request a new code.",
+    emailFailed: "The e-mail could not be sent. Try again later.",
+  },
+
+  email: {
+    subject: "{code} – your sign-in code ({site})",
+    intro: "Use this code to sign in to {site}:",
+    validity: "The code is valid for {minutes} minutes.",
+    ignore: "If you didn't request this, you can safely ignore this e-mail.",
   },
 };

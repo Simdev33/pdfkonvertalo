@@ -3,7 +3,7 @@
  * conversion pipeline). The I18nProvider fills it in the browser only, so
  * server rendering never depends on it; components use useI18n() instead.
  */
-import type { Locale } from "./config";
+import { DEFAULT_LOCALE, type Locale } from "./config";
 import type { UiDict } from "./ui/hu";
 
 let state: { locale: Locale; ui: UiDict } | null = null;
@@ -18,5 +18,5 @@ export function t(): UiDict {
 }
 
 export function runtimeLocale(): Locale {
-  return state?.locale ?? "hu";
+  return state?.locale ?? DEFAULT_LOCALE;
 }

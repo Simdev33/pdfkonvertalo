@@ -11,8 +11,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   experimental: {
-    // Two root layouts (app/(hu) and app/[lang]) need a routing-level 404 page.
+    // Two root layouts (app/(en) and app/[lang]) need a routing-level 404 page.
     globalNotFound: true,
+  },
+  async redirects() {
+    // Hungarian used to live at the root; its old URLs now point to /hu/….
+    return [
+      { source: "/pdf-bol-kep", destination: "/hu/pdf-bol-kep", permanent: true },
+      { source: "/aszf", destination: "/hu/aszf", permanent: true },
+      { source: "/adatvedelem", destination: "/hu/adatvedelem", permanent: true },
+      { source: "/fiok", destination: "/hu/fiok", permanent: true },
+    ];
   },
   async headers() {
     return [

@@ -7,7 +7,7 @@ export const hu = {
   meta: {
     tagline: "Képek, Office- és szöveges fájlok PDF-be",
     description:
-      "Ingyenes, profi PDF konvertáló: JPG, PNG, HEIC, WebP, TIFF, SVG képek, Word-, Excel- és PowerPoint-fájlok, TXT, CSV, Markdown és JSON fájlok PDF-be alakítása, PDF-ek összefűzése és PDF-ből kép készítése. A képek, szövegek és PDF-ek a böngésződben maradnak.",
+      "Profi PDF konvertáló: JPG, PNG, HEIC, WebP, TIFF, SVG képek, Word-, Excel- és PowerPoint-fájlok, TXT, CSV, Markdown és JSON fájlok PDF-be alakítása, PDF-ek összefűzése és PDF-ből kép készítése. A képek, szövegek és PDF-ek a böngésződben maradnak. {days} napos teljes hozzáférés {trial}.",
     keywords: [
       "PDF konvertáló",
       "kép PDF-be",
@@ -23,12 +23,14 @@ export const hu = {
     ],
     pdfToImageTitle: "PDF-ből kép – JPG és PNG feltöltés nélkül",
     pdfToImageDescription:
-      "PDF oldalak átalakítása JPG vagy PNG képpé 72–600 DPI felbontásban, akár csak a kiválasztott oldalakból. Ingyenes, gyors, és a PDF végig a gépeden marad.",
+      "PDF oldalak átalakítása JPG vagy PNG képpé 72–600 DPI felbontásban, akár csak a kiválasztott oldalakból. Gyors, és a PDF végig a gépeden marad.",
     termsTitle: "Általános szerződési feltételek",
     termsDescription: "A PDF Konvertáló használatának feltételei.",
     privacyTitle: "Adatkezelési tájékoztató",
     privacyDescription: "Milyen adatokat kezel a PDF Konvertáló, mire, meddig, és milyen jogaid vannak.",
-    ogBadge: "regisztráció és vízjel nélkül",
+    accountTitle: "Fiókom",
+    accountDescription: "Belépés e-mailes kóddal és az előfizetés kezelése.",
+    ogBadge: "vízjel nélkül · {days} nap {trial}",
     ogTitle: "Képekből és fájlokból",
     ogAccent: "profi PDF, pillanatok alatt.",
   },
@@ -37,7 +39,7 @@ export const hu = {
     badge: "Képek és PDF-ek feltöltés nélkül, a böngésződben",
     title: "Képekből és fájlokból",
     accent: "profi PDF, pillanatok alatt.",
-    text: "Húzd be a fotóidat, szkenneléseidet, Word-, Excel- és PowerPoint-fájljaidat vagy PDF-jeidet, rendezd sorba, és egy kattintással kész a PDF. Nincs regisztráció, nincs vízjel.",
+    text: "Húzd be a fotóidat, szkenneléseidet, Word-, Excel- és PowerPoint-fájljaidat vagy PDF-jeidet, rendezd sorba, és egy kattintással kész a PDF, vízjel nélkül.",
     formatsLabel: "Támogatott formátumok",
     featuresEyebrow: "Funkciók",
     featuresTitle: "Minden, ami egy profi konvertálóhoz kell",
@@ -73,12 +75,32 @@ export const hu = {
     steps: [
       { title: "Húzd be a fájlokat", text: "Képeket, Office- és szöveges fájlokat, PDF-eket – akár vegyesen. Képernyőképet a Ctrl+V is beilleszt." },
       { title: "Rendezd és állítsd be", text: "Húzással rendezheted a sorrendet, forgathatsz, és kiválaszthatod az oldalméretet, margót, minőséget." },
-      { title: "Töltsd le a PDF-et", text: "Egyetlen összefűzött PDF vagy fájlonként külön PDF-ek ZIP-ben – vízjel és regisztráció nélkül." },
+      { title: "Töltsd le a PDF-et", text: "Egyetlen összefűzött PDF vagy fájlonként külön PDF-ek ZIP-ben, vízjel nélkül. Az első {days} nap {trial}." },
     ],
+    pricingEyebrow: "Ár",
+    pricingTitle: "Egyetlen, egyszerű előfizetés",
+    pricingText: "A konvertálás és az előnézet díjmentes, előfizetés csak a kész fájlok letöltéséhez kell.",
+    pricingTrial: "{days} napos teljes hozzáférés",
+    pricingThen: "utána {monthly} havonta, amíg le nem mondod",
+    pricingPoints: [
+      "Korlátlan konvertálás és letöltés",
+      "Minden formátum: képek, Office-fájlok, szöveg, PDF",
+      "Vízjel nélkül, jelszó és regisztráció nélkül",
+      "Bármikor lemondható, egy kattintással",
+    ],
+    pricingCta: "Kezdd el most",
     faq: [
       {
         q: "Tényleg nem töltődnek fel a fájljaim?",
         a: "A képek, szöveges fájlok és PDF-ek nem: ezeket teljes egészében a böngésződ alakítja át, egyetlen bájtjuk sem kerül szerverre. Ezt a böngésző fejlesztői eszközeinek Hálózat fülén te magad is ellenőrizheted. Kivételt a Word-, Excel- és PowerPoint-fájlok jelentenek: a pontos átalakításukhoz irodai program kell, ezért ezeket a szerverünk alakítja PDF-fé, és az átalakítás után azonnal törli.",
+      },
+      {
+        q: "Mennyibe kerül?",
+        a: "A konvertálás és az előnézet díjmentes, a kész fájlok letöltéséhez előfizetés kell. Az első {days} nap {trial}, utána {monthly} havonta, amíg le nem mondod. Lemondani bármikor lehet a Fiókom oldalon, egy kattintással; a hozzáférés a már kifizetett időszak végéig megmarad.",
+      },
+      {
+        q: "Kell regisztrálnom?",
+        a: "Jelszó nem kell. A fizetéskor megadott e-mail-címeddel lépsz be: másik eszközön a Belépés gombbal kérsz egy 6 jegyű kódot e-mailben, és azzal már használhatod is.",
       },
       {
         q: "Milyen fájlokat tudok PDF-be alakítani?",
@@ -137,7 +159,7 @@ export const hu = {
     stats: [
       { value: "0 bájt", label: "feltöltés képeknél és PDF-eknél" },
       { value: "Azonnal", label: "törlődik az Office-fájl a szerverről" },
-      { value: "Nincs", label: "regisztráció és vízjel" },
+      { value: "Nincs", label: "vízjel és jelszavas regisztráció" },
       { value: "pdf.js", label: "a Mozilla megjelenítőmotorja" },
     ],
     faqTitle: "Gyakori kérdések",
@@ -164,6 +186,24 @@ export const hu = {
     unavailable: "A dokumentum-átalakító szolgáltatás most nem érhető el.",
     noEngine: "Ezen a szerveren nincs átalakító ehhez a fájlhoz (LibreOffice, Gotenberg vagy Microsoft {app}).",
     unexpected: "Váratlan hiba történt az átalakítás közben.",
+    invalidEmail: "Adj meg egy érvényes e-mail-címet.",
+    rateLimited: "Túl sok próbálkozás. Várj néhány percet, és próbáld újra.",
+    billingUnavailable: "A fizetési szolgáltatás most nem érhető el. Próbáld újra később.",
+    checkoutFailed: "Nem sikerült elindítani a fizetést. Próbáld újra.",
+    alreadySubscribed: "Ehhez az e-mail-címhez már tartozik aktív előfizetés. Lépj be a kóddal, amelyet e-mailben küldünk.",
+    paymentIncomplete: "A fizetés nem fejeződött be.",
+    notSignedIn: "Ehhez be kell lépned.",
+    codeInvalid: "Hibás kód. Ellenőrizd, és próbáld újra.",
+    codeExpired: "A kód lejárt. Kérj újat.",
+    codeLocked: "Túl sok hibás próbálkozás. Kérj új kódot.",
+    emailFailed: "Nem sikerült elküldeni az e-mailt. Próbáld újra később.",
+  },
+
+  email: {
+    subject: "{code} – belépési kódod ({site})",
+    intro: "Ezzel a kóddal léphetsz be a(z) {site} oldalon:",
+    validity: "A kód {minutes} percig érvényes.",
+    ignore: "Ha nem te kérted, nyugodtan hagyd figyelmen kívül ezt a levelet.",
   },
 };
 

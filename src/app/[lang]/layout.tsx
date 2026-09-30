@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { rootMetadata, SiteShell, VIEWPORT } from "@/components/site-shell";
-import { isLocale, PREFIXED_LOCALES } from "@/i18n/config";
+import { DEFAULT_LOCALE, isLocale, PREFIXED_LOCALES } from "@/i18n/config";
 
-// Every language except Hungarian (which lives at the root, see app/(hu)).
+// Every language except English (which lives at the root, see app/(en)).
 export const dynamicParams = false;
 export const viewport = VIEWPORT;
 
@@ -21,6 +21,6 @@ export async function generateMetadata({ params }: Omit<Props, "children">): Pro
 
 export default async function LocalizedLayout({ children, params }: Props) {
   const { lang } = await params;
-  if (!isLocale(lang) || lang === "hu") notFound();
+  if (!isLocale(lang) || lang === DEFAULT_LOCALE) notFound();
   return <SiteShell locale={lang}>{children}</SiteShell>;
 }

@@ -5,6 +5,7 @@ import { INTL_LOCALE, pathFor, type Locale } from "@/i18n/config";
 import { LEGAL, SITE } from "@/i18n/dictionaries";
 import { fmt } from "@/i18n/format";
 import type { LegalBlock } from "@/i18n/legal/types";
+import { priceVars } from "@/lib/plan";
 import { site } from "@/lib/site";
 
 // Marks an operator field that still has to be filled in site.ts.
@@ -73,11 +74,13 @@ export function LegalPage({ locale, doc }: { locale: Locale; doc: "terms" | "pri
   const missing = chrome.operatorMissing;
   const { operator, hosting } = site;
   const vars = {
+    ...priceVars(INTL_LOCALE[locale]),
     site: site.name,
     url: site.url,
     operatorEmail: operator.email || MISSING,
     privacyPath: pathFor("privacy", locale),
     termsPath: pathFor("terms", locale),
+    accountPath: pathFor("account", locale),
   };
   const effective = new Intl.DateTimeFormat(INTL_LOCALE[locale], { dateStyle: "long" }).format(new Date(`${site.legalEffective}T12:00:00Z`));
 

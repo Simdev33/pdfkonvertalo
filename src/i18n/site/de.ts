@@ -4,7 +4,7 @@ export const de: SiteDict = {
   meta: {
     tagline: "Bilder, Office- und Textdateien in PDF",
     description:
-      "Kostenloser, professioneller PDF-Konverter: JPG-, PNG-, HEIC-, WebP-, TIFF- und SVG-Bilder, Word-, Excel- und PowerPoint-Dateien sowie TXT-, CSV-, Markdown- und JSON-Dateien in PDF umwandeln, PDFs zusammenfügen und aus PDFs Bilder erstellen. Bilder, Texte und PDFs bleiben in Ihrem Browser.",
+      "Professioneller PDF-Konverter: JPG-, PNG-, HEIC-, WebP-, TIFF- und SVG-Bilder, Word-, Excel- und PowerPoint-Dateien sowie TXT-, CSV-, Markdown- und JSON-Dateien in PDF umwandeln, PDFs zusammenfügen und aus PDFs Bilder erstellen. Bilder, Texte und PDFs bleiben in Ihrem Browser. {days} Tage Vollzugriff für {trial}.",
     keywords: [
       "PDF Konverter",
       "Bild in PDF",
@@ -20,12 +20,14 @@ export const de: SiteDict = {
     ],
     pdfToImageTitle: "PDF in Bild – JPG und PNG ohne Upload",
     pdfToImageDescription:
-      "PDF-Seiten in JPG- oder PNG-Bilder umwandeln, mit 72–600 DPI Auflösung, auf Wunsch nur die ausgewählten Seiten. Kostenlos, schnell, und das PDF bleibt die ganze Zeit auf Ihrem Gerät.",
+      "PDF-Seiten in JPG- oder PNG-Bilder umwandeln, mit 72–600 DPI Auflösung, auf Wunsch nur die ausgewählten Seiten. Schnell, und das PDF bleibt die ganze Zeit auf Ihrem Gerät.",
     termsTitle: "Allgemeine Geschäftsbedingungen",
     termsDescription: "Die Bedingungen für die Nutzung von PDF Konvertáló.",
     privacyTitle: "Datenschutzerklärung",
     privacyDescription: "Welche Daten PDF Konvertáló verarbeitet, wozu und wie lange, und welche Rechte Sie haben.",
-    ogBadge: "ohne Registrierung und Wasserzeichen",
+    accountTitle: "Mein Konto",
+    accountDescription: "Anmeldung mit E-Mail-Code und Verwaltung des Abonnements.",
+    ogBadge: "ohne Wasserzeichen · {days} Tage für {trial}",
     ogTitle: "Aus Bildern und Dateien",
     ogAccent: "im Handumdrehen ein Profi-PDF.",
   },
@@ -34,7 +36,7 @@ export const de: SiteDict = {
     badge: "Bilder und PDFs ohne Upload, direkt in Ihrem Browser",
     title: "Aus Bildern und Dateien",
     accent: "im Handumdrehen ein Profi-PDF.",
-    text: "Ziehen Sie Ihre Fotos, Scans, Word-, Excel- und PowerPoint-Dateien oder PDFs hinein, bringen Sie sie in die gewünschte Reihenfolge, und mit einem Klick ist das PDF fertig. Keine Registrierung, kein Wasserzeichen.",
+    text: "Ziehen Sie Ihre Fotos, Scans, Word-, Excel- und PowerPoint-Dateien oder PDFs hinein, bringen Sie sie in die gewünschte Reihenfolge, und mit einem Klick ist das PDF fertig – ohne Wasserzeichen.",
     formatsLabel: "Unterstützte Formate",
     featuresEyebrow: "Funktionen",
     featuresTitle: "Alles, was ein professioneller Konverter braucht",
@@ -70,12 +72,32 @@ export const de: SiteDict = {
     steps: [
       { title: "Dateien hineinziehen", text: "Bilder, Office- und Textdateien, PDFs – auch gemischt. Screenshots fügen Sie einfach mit Ctrl+V ein." },
       { title: "Sortieren und einstellen", text: "Ändern Sie die Reihenfolge per Drag & Drop, drehen Sie Bilder, und wählen Sie Seitengröße, Rand und Qualität." },
-      { title: "PDF herunterladen", text: "Ein einziges zusammengefügtes PDF oder pro Datei ein eigenes PDF im ZIP – ohne Wasserzeichen und Registrierung." },
+      { title: "PDF herunterladen", text: "Ein einziges zusammengefügtes PDF oder pro Datei ein eigenes PDF im ZIP, ohne Wasserzeichen. Die ersten {days} Tage für {trial}." },
     ],
+    pricingEyebrow: "Preis",
+    pricingTitle: "Ein einziges, einfaches Abonnement",
+    pricingText: "Umwandlung und Vorschau sind kostenlos, ein Abonnement brauchen Sie nur zum Herunterladen der fertigen Dateien.",
+    pricingTrial: "{days} Tage Vollzugriff",
+    pricingThen: "danach {monthly} pro Monat, bis Sie kündigen",
+    pricingPoints: [
+      "Unbegrenzt umwandeln und herunterladen",
+      "Alle Formate: Bilder, Office-Dateien, Text, PDF",
+      "Ohne Wasserzeichen, ohne Passwort und ohne Registrierung",
+      "Jederzeit mit einem Klick kündbar",
+    ],
+    pricingCta: "Jetzt starten",
     faq: [
       {
         q: "Werden meine Dateien wirklich nicht hochgeladen?",
         a: "Bilder, Textdateien und PDFs nicht: Diese wandelt Ihr Browser vollständig selbst um, kein einziges Byte davon gelangt auf einen Server. Das können Sie selbst im Tab „Netzwerk“ der Entwicklertools Ihres Browsers überprüfen. Eine Ausnahme bilden Word-, Excel- und PowerPoint-Dateien: Für ihre exakte Umwandlung ist ein Office-Programm nötig, daher wandelt unser Server sie in PDF um und löscht sie unmittelbar nach der Umwandlung.",
+      },
+      {
+        q: "Was kostet es?",
+        a: "Umwandlung und Vorschau sind kostenlos, zum Herunterladen der fertigen Dateien ist ein Abonnement nötig. Die ersten {days} Tage kosten {trial}, danach {monthly} pro Monat, bis Sie kündigen. Sie können jederzeit mit einem Klick auf der Seite „Mein Konto“ kündigen; der Zugang bleibt bis zum Ende des bereits bezahlten Zeitraums bestehen.",
+      },
+      {
+        q: "Muss ich mich registrieren?",
+        a: "Ein Passwort brauchen Sie nicht. Sie melden sich mit der E-Mail-Adresse an, die Sie bei der Zahlung angegeben haben: Auf einem anderen Gerät fordern Sie über die Schaltfläche „Anmelden“ einen 6-stelligen Code per E-Mail an, und schon können Sie loslegen.",
       },
       {
         q: "Welche Dateien kann ich in PDF umwandeln?",
@@ -134,7 +156,7 @@ export const de: SiteDict = {
     stats: [
       { value: "0 Byte", label: "Upload bei Bildern und PDFs" },
       { value: "Sofort", label: "wird die Office-Datei vom Server gelöscht" },
-      { value: "Ohne", label: "Registrierung und Wasserzeichen" },
+      { value: "Ohne", label: "Wasserzeichen und Registrierung mit Passwort" },
       { value: "pdf.js", label: "die Rendering-Engine von Mozilla" },
     ],
     faqTitle: "Häufige Fragen",
@@ -161,5 +183,23 @@ export const de: SiteDict = {
     unavailable: "Der Dienst zur Dokumentumwandlung ist derzeit nicht erreichbar.",
     noEngine: "Auf diesem Server steht für diese Datei kein Konverter zur Verfügung (LibreOffice, Gotenberg oder Microsoft {app}).",
     unexpected: "Bei der Umwandlung ist ein unerwarteter Fehler aufgetreten.",
+    invalidEmail: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+    rateLimited: "Zu viele Versuche. Bitte warten Sie einige Minuten und versuchen Sie es dann erneut.",
+    billingUnavailable: "Der Zahlungsdienst ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.",
+    checkoutFailed: "Die Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+    alreadySubscribed: "Zu dieser E-Mail-Adresse gibt es bereits ein aktives Abonnement. Melden Sie sich mit dem Code an, den wir Ihnen per E-Mail senden.",
+    paymentIncomplete: "Die Zahlung wurde nicht abgeschlossen.",
+    notSignedIn: "Dafür müssen Sie angemeldet sein.",
+    codeInvalid: "Falscher Code. Bitte prüfen Sie ihn und versuchen Sie es erneut.",
+    codeExpired: "Der Code ist abgelaufen. Bitte fordern Sie einen neuen an.",
+    codeLocked: "Zu viele Fehlversuche. Bitte fordern Sie einen neuen Code an.",
+    emailFailed: "Die E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
+  },
+
+  email: {
+    subject: "{code} – Ihr Anmeldecode ({site})",
+    intro: "Mit diesem Code können Sie sich bei {site} anmelden:",
+    validity: "Der Code ist {minutes} Minuten gültig.",
+    ignore: "Falls Sie diesen Code nicht angefordert haben, können Sie diese E-Mail einfach ignorieren.",
   },
 };

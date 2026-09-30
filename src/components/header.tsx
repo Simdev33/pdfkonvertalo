@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Globe } from "lucide-react";
+import { Check, CircleUserRound, Globe } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type MouseEvent } from "react";
@@ -8,6 +8,8 @@ import { Logo } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LOCALE_NAMES, LOCALES, parsePath, pathFor, type PageId } from "@/i18n/config";
 import { useI18n } from "@/i18n/provider";
+import { rememberLocale } from "@/i18n/remember";
+import { loadAccount, maybeSignedIn, useAccount } from "@/lib/account";
 import { closePdfForImages } from "@/lib/pdf-to-image";
 import { clearItems, useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -68,10 +70,37 @@ export function Header() {
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <LanguageMenu page={current} />
+          <AccountLink active={current === "account"} />
           <ThemeToggle />
         </div>
       </div>
     </header>
+  );
+}
+
+function AccountLink({ active }: { active: boolean }) {
+  const { locale, ui } = useI18n();
+  const signedIn = useAccount((state) => state.signedIn);
+
+  useEffect(() => {
+    if (maybeSignedIn()) loadAccount().catch(() => undefined);
+  }, []);
+
+  const label = signedIn ? ui.nav.account : ui.nav.login;
+  return (
+    <Link
+      href={pathFor("account", locale)}
+      aria-label={label}
+      title={label}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "inline-flex h-9 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium transition-colors hover:bg-surface-2 hover:text-fg [&_svg]:size-4",
+        active ? "text-fg" : "text-fg-muted",
+      )}
+    >
+      <CircleUserRound />
+      <span className="hidden md:inline">{label}</span>
+    </Link>
   );
 }
 
@@ -108,6 +137,7 @@ function LanguageMenu({ page }: { page: PageId }) {
               aria-current={option === locale ? "true" : undefined}
               onClick={(event) => {
                 if (option !== locale) leaveWorkspace(event, ui.nav.confirmLanguage);
+                if (!event.defaultPrevented) rememberLocale(option);
                 if (ref.current) ref.current.open = false;
               }}
               className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-[13px] hover:bg-surface-2"

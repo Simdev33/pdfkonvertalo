@@ -1,6 +1,6 @@
 # PDF Konvertáló
 
-Profi PDF konvertáló Next.js-ben, öt nyelven (magyar, angol, német, francia, spanyol). A képek, szöveges fájlok és PDF-ek feldolgozása **a böngészőben** történik – ezek nem kerülnek szerverre. Egyedül a Word-, Excel- és PowerPoint-fájlokat alakítja át a szerver (lásd lent).
+Profi PDF konvertáló Next.js-ben, öt nyelven (fő nyelv az angol, továbbá magyar, német, francia, spanyol). A képek, szöveges fájlok és PDF-ek feldolgozása **a böngészőben** történik – ezek nem kerülnek szerverre. Egyedül a Word-, Excel- és PowerPoint-fájlokat alakítja át a szerver (lásd lent).
 
 ## Funkciók
 
@@ -22,24 +22,29 @@ Profi PDF konvertáló Next.js-ben, öt nyelven (magyar, angol, német, francia,
 - Képminőség (eredeti / nagy / közepes / kicsi), fekete-fehér mód
 - Egy összefűzött PDF vagy fájlonként külön PDF (ZIP)
 
-**PDF-ből kép** (`/pdf-bol-kep`)
+**PDF-ből kép** (`/pdf-to-image`)
 
 - Oldalak JPG vagy PNG képpé, 72–600 DPI-n, akár csak a kijelölt oldalakból
 - A képekbe a felbontás is bekerül (JFIF / pHYs), így nyomtatáskor valós méretűek
 
-**Jogi oldalak:** Általános szerződési feltételek (`/aszf`) és adatkezelési tájékoztató (`/adatvedelem`), minden nyelven.
+**Előfizetés:** a konvertálás és az előnézet díjmentes, az elkészült fájlok letöltéséhez előfizetés kell: 7 nap teljes hozzáférés 1,00 €, utána 9,90 €/hó, bármikor lemondható (Stripe). Jelszó nincs: a fizetéskor megadott e-mail-címmel, e-mailben kapott kóddal lehet belépni; a Fiókom oldalon (`/account`) a Stripe ügyfélportálján mondható le.
+
+**Jogi oldalak:** Általános szerződési feltételek (`/terms`) és adatkezelési tájékoztató (`/privacy`), minden nyelven; az üzemeltető a TourCierge s. r. o. (Pozsony).
 
 ## Nyelvek
 
-| Oldal | magyar | angol | német | francia | spanyol |
+| Oldal | angol | magyar | német | francia | spanyol |
 | --- | --- | --- | --- | --- | --- |
-| Konvertáló | `/` | `/en` | `/de` | `/fr` | `/es` |
-| PDF-ből kép | `/pdf-bol-kep` | `/en/pdf-to-image` | `/de/pdf-in-bild` | `/fr/pdf-en-image` | `/es/pdf-a-imagen` |
-| ÁSZF | `/aszf` | `/en/terms` | `/de/agb` | `/fr/conditions` | `/es/terminos` |
-| Adatvédelem | `/adatvedelem` | `/en/privacy` | `/de/datenschutz` | `/fr/confidentialite` | `/es/privacidad` |
+| Konvertáló | `/` | `/hu` | `/de` | `/fr` | `/es` |
+| PDF-ből kép | `/pdf-to-image` | `/hu/pdf-bol-kep` | `/de/pdf-in-bild` | `/fr/pdf-en-image` | `/es/pdf-a-imagen` |
+| ÁSZF | `/terms` | `/hu/aszf` | `/de/agb` | `/fr/conditions` | `/es/terminos` |
+| Adatvédelem | `/privacy` | `/hu/adatvedelem` | `/de/datenschutz` | `/fr/confidentialite` | `/es/privacidad` |
+| Fiókom | `/account` | `/hu/fiok` | `/de/konto` | `/fr/compte` | `/es/cuenta` |
 
-- A magyar a régi címeken maradt (`app/(hu)`), a többi nyelv közös, előtagos útvonalon fut (`app/[lang]`); mind statikusan generált. A két gyökér-layout miatt a 404-et az `app/global-not-found.tsx` adja (`experimental.globalNotFound`).
-- Címek és nyelvek: `src/i18n/config.ts` (`SLUGS`, `pathFor`). A magyar mappanevek a `SLUGS.hu` értékei – ha egyiket átnevezed, a mappát is.
+- Az angol (fő nyelv) a gyökérben van (`app/(en)`), a többi nyelv közös, előtagos útvonalon fut (`app/[lang]`); mind statikusan generált. A két gyökér-layout miatt a 404-et az `app/global-not-found.tsx` adja (`experimental.globalNotFound`).
+- **Automatikus nyelvválasztás** (`src/proxy.ts`): aki először nyitja meg a `/` címet, azt a böngészője nyelve (`Accept-Language`) szerint átirányítja a saját nyelvére (pl. magyar böngésző → `/hu`); ha a böngésző nyelvét nem ismerjük, angol marad. A nyelvváltóban (fejléc, lábléc) választott nyelvet a `pk_lang` süti egy évig megjegyzi, onnantól nincs átirányítás. A kereső-robotok (nyelv nélkül) az angol gyökeret látják. A kézzel beírt `/en/…` a `/…` címre visz.
+- A régi magyar címek (`/pdf-bol-kep`, `/aszf`, `/adatvedelem`, `/fiok`) végleges átirányítással a `/hu/…` alá mutatnak (`next.config.ts`).
+- Címek és nyelvek: `src/i18n/config.ts` (`DEFAULT_LOCALE`, `SLUGS`, `pathFor`). Az angol mappanevek a `SLUGS.en` értékei – ha egyiket átnevezed, a mappát is.
 - Szövegek: `src/i18n/ui/*` (a felület, csak az aktív nyelv kerül a böngészőbe), `src/i18n/site/*` (nyitóoldalak, metaadatok, API-hibák), `src/i18n/legal/*` (jogi szövegek). A forrás a magyar; a `src/i18n/i18n.test.ts` ellenőrzi, hogy minden fordításban ugyanazok a kulcsok, `{helykitöltők}` és linkek szerepelnek.
 - Nyelvváltó a fejlécben, `hreflang` alternatívák az oldalakon és a `sitemap.xml`-ben, nyelvenkénti OG-kép.
 
@@ -75,11 +80,37 @@ A `scripts/copy-assets.mjs` (automatikusan fut `install`, `dev` és `build` elő
 
 Élesítéskor állítsd be a `NEXT_PUBLIC_SITE_URL` környezeti változót (pl. `https://pdfkonvertalo.hu`) a helyes canonical-, `hreflang`-, sitemap- és Open Graph-linkekhez. Ha nincs megadva, Vercelen a projekt éles domainje (`VERCEL_PROJECT_PRODUCTION_URL`) lesz az alapcím.
 
-Az ÁSZF és az adatkezelési tájékoztató üzemeltetői adatai (név, cím, e-mail, opcionálisan nyilvántartási szám és adószám) a `src/lib/site.ts` `operator` mezőjében vannak; amíg üresek, a jogi oldalakon kiemelt „kitöltendő” jelölés látszik. Ugyanitt van a hatálybalépés dátuma (`legalEffective`).
+Az ÁSZF és az adatkezelési tájékoztató üzemeltetői adatai (név, cím, e-mail, nyilvántartási szám, adószám) a `src/lib/site.ts` `operator` mezőjében vannak; ami üres, az a jogi oldalakon kiemelt „kitöltendő” jelöléssel látszik. Ugyanitt van a hatálybalépés dátuma (`legalEffective`).
+
+### Előfizetés és fizetés (Stripe)
+
+A környezeti változók listája a `.env.example`-ben van (helyben: `.env.local`, Vercelen: Project → Settings → Environment Variables).
+
+| Változó | Mire kell |
+| --- | --- |
+| `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe-kulcsok (tesztre `sk_test_…` / `pk_test_…`) |
+| `SESSION_SECRET` | a belépési sütik aláírása (hosszú véletlen szöveg) |
+| `RESEND_API_KEY`, `EMAIL_FROM` | belépési kódok e-mailben ([Resend](https://resend.com)); kulcs nélkül fejlesztéskor a kód a szervernaplóba kerül |
+| `STRIPE_PRICE_TRIAL`, `STRIPE_PRICE_MONTHLY` | nem kötelező: meglévő Stripe-árak; üresen az app első használatkor létrehozza a „PDF Konvertáló” terméket és a két árat (1,00 € egyszeri, 9,90 €/hó) |
+
+Működés:
+
+- Adatbázis nincs: az előfizetés állapotát mindig a Stripe-tól kérdezi (`src/lib/server/billing.ts`), a belépett ügyfelet aláírt, `httpOnly` süti azonosítja (`src/lib/server/session.ts`). A belépési kód hash-e, lejárata és a próbálkozások száma (max. 5) a Stripe-ügyfél metaadataiban van (`src/lib/server/login.ts`).
+- Fizetés: Checkout Sessions API, `ui_mode: "elements"` – saját fizetési oldal expressz gombokkal (Apple Pay, Google Pay, PayPal, Link) és kártyaűrlappal (`src/components/paywall/`). Az előfizetés 7 napos próbaidő, az első számlán 1,00 € egyszeri díjjal. Ha egy e-mail-címhez már van aktív előfizetés, nem enged újat, hanem belépést kér.
+- A konvertálás a böngészőben marad; a letöltés előtt a böngésző kérdezi meg a szervert, van-e hozzáférés (`src/lib/deliver.ts`). Átirányító fizetési módnál (PayPal) az elkészült fájl legfeljebb 60 percig az eszközön, IndexedDB-ben vár (`src/lib/pending-result.ts`).
+- Az Office-fájlokat a szerver alakítja át, ezért ott a szerver dönt: előfizetés nélkül csak az **első oldalt** adja vissza előnézetnek (`X-Preview: 1`, a teljes hosszt az `X-Page-Count` fejléc mondja meg), és IP-címenként 10 percenként legfeljebb 60 ilyen kérést fogad. Ha az eredményben ilyen előnézet van, fizetés (vagy belépés) után az oldal a teljes dokumentumokkal automatikusan újra lefuttatja a konvertálást, és elindítja a letöltést; átirányító fizetésnél ehhez a bemeneti fájlok is az IndexedDB-ben várnak.
+- Végpontok: `POST /api/checkout`, `POST /api/checkout/complete`, `GET|DELETE /api/account`, `POST /api/account/portal`, `POST /api/auth/request`, `POST /api/auth/verify`.
+
+A Stripe felületén élesítés előtt:
+
+- **Settings → Payment methods:** kapcsold be a kívánt módokat (kártya, Apple Pay, Google Pay, PayPal, Link).
+- **Settings → Payment method domains:** add hozzá az oldal domainjét (Apple Pay / Google Pay / PayPal csak regisztrált, HTTPS-es domainen jelenik meg).
+- **Settings → Billing → Subscriptions and emails:** kapcsold be a próbaidő lejárta előtti emlékeztető e-mailt és a nyugtákat (a kártyatársaságok előírják).
+- **Settings → Public details:** cégnév, támogatási e-mail, ÁSZF- és adatvédelmi URL.
 
 ### Office → PDF (szerveroldal)
 
-A `POST /api/office-to-pdf` végpont (`src/app/api/office-to-pdf/route.ts`, motor: `src/lib/server/office.ts`) egy `file` mezőben kapott Word-, Excel- vagy PowerPoint-fájlt ad vissza PDF-ként. Az átalakító sorrendje:
+A `POST /api/office-to-pdf` végpont (`src/app/api/office-to-pdf/route.ts`, motor: `src/lib/server/office.ts`) egy `file` mezőben kapott Word-, Excel- vagy PowerPoint-fájlt ad vissza PDF-ként – előfizetőnek a teljeset, mindenki másnak csak az első oldalát (lásd fent). Az átalakító sorrendje:
 
 | Motor | Mikor | Megjegyzés |
 | --- | --- | --- |
@@ -112,9 +143,10 @@ vercel.json               Vercel Services: Next.js + belső Gotenberg
 gotenberg/                a Gotenberg-szolgáltatás konténere (Dockerfile.vercel)
 src/
   app/
-    (hu)/                 magyar oldalak a gyökérben (/, /pdf-bol-kep, /aszf, /adatvedelem) + gyökér-layout
-    [lang]/               angol, német, francia, spanyol oldalak lefordított címekkel + gyökér-layout
-    api/office-to-pdf/    Office → PDF végpont
+    (en)/                 angol oldalak a gyökérben (/, /pdf-to-image, /terms, /privacy, /account) + gyökér-layout
+    [lang]/               magyar, német, francia, spanyol oldalak lefordított címekkel + gyökér-layout
+    api/                  Office → PDF, fizetés, belépés, fiók
+  proxy.ts                első látogatáskor a böngésző nyelvére irányít
     global-not-found.tsx, sitemap.ts, robots.ts, icon.svg
   i18n/                   nyelvek, címek, szótárak (ui / site / legal), fordítási segédek
   components/

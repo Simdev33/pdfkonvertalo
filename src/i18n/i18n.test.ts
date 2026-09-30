@@ -1,11 +1,12 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { LOCALES, parsePath, pathFor, SLUGS, type PageId } from "./config";
+import { preferredLocale } from "@/proxy";
+import { DEFAULT_LOCALE, LOCALES, parsePath, pathFor, SLUGS, type PageId } from "./config";
 import { LEGAL, SITE, UI } from "./dictionaries";
 import { plural } from "./format";
 
-const PAGES: PageId[] = ["converter", "pdfToImage", "terms", "privacy"];
+const PAGES: PageId[] = ["converter", "pdfToImage", "terms", "privacy", "account"];
 
 describe("localized paths", () => {
   it("round-trip for every page and language", () => {
@@ -14,21 +15,32 @@ describe("localized paths", () => {
     }
   });
 
-  it("keeps the original Hungarian URLs at the root", () => {
-    expect(pathFor("converter", "hu")).toBe("/");
-    expect(pathFor("pdfToImage", "hu")).toBe("/pdf-bol-kep");
+  it("serves English at the root and every other language under a prefix", () => {
+    expect(pathFor("converter", "en")).toBe("/");
+    expect(pathFor("pdfToImage", "en")).toBe("/pdf-to-image");
+    expect(pathFor("converter", "hu")).toBe("/hu");
+    expect(pathFor("pdfToImage", "hu")).toBe("/hu/pdf-bol-kep");
     expect(pathFor("terms", "de")).toBe("/de/agb");
     expect(parsePath("/xx/yy")).toBeNull();
   });
 
-  it("has unique slugs per language and a folder for every Hungarian page", () => {
+  it("has unique slugs per language and a folder for every root (English) page", () => {
     for (const locale of LOCALES) {
       const slugs = Object.values(SLUGS).map((bySlug) => bySlug[locale]);
       expect(new Set(slugs).size).toBe(slugs.length);
     }
-    for (const slug of Object.values(SLUGS).map((bySlug) => bySlug.hu)) {
-      expect(existsSync(join(process.cwd(), "src", "app", "(hu)", slug, "page.tsx"))).toBe(true);
+    for (const slug of Object.values(SLUGS).map((bySlug) => bySlug[DEFAULT_LOCALE])) {
+      expect(existsSync(join(process.cwd(), "src", "app", `(${DEFAULT_LOCALE})`, slug, "page.tsx"))).toBe(true);
     }
+  });
+
+  it("picks the visitor's language from Accept-Language", () => {
+    expect(preferredLocale("hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7")).toBe("hu");
+    expect(preferredLocale("de-AT, en;q=0.5")).toBe("de");
+    expect(preferredLocale("pl-PL,pl;q=0.9,fr;q=0.8")).toBe("fr");
+    expect(preferredLocale("en;q=0.2, es;q=0.9")).toBe("es");
+    expect(preferredLocale("pl,cs")).toBeNull();
+    expect(preferredLocale(null)).toBeNull();
   });
 });
 

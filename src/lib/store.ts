@@ -1,5 +1,7 @@
 import { create } from "zustand";
-import type { ConvertOptions } from "@/lib/convert/engine";
+import { INTL_LOCALE } from "@/i18n/config";
+import { runtimeLocale } from "@/i18n/runtime";
+import type { ConvertItem, ConvertOptions } from "@/lib/convert/engine";
 import type { DetectedFormat } from "@/lib/convert/formats";
 import type { Dpi } from "@/lib/convert/image-info";
 import type { Rotation } from "@/lib/convert/layout";
@@ -80,6 +82,25 @@ export interface ResultState {
   notes: string[];
 }
 
+/** What a "Files → PDF" result was made from, to convert it again. */
+export interface ConversionSource {
+  items: ConvertItem[];
+  options: ConvertOptions;
+  /** Inputs left out because they could not be loaded. */
+  skipped: number;
+}
+
+/** A finished result waiting for payment (see components/paywall). */
+export interface PaywallState {
+  result: ResultState;
+  /** Set when office documents are in the result only with their first page (the server's preview): converted again in full once paid. */
+  source?: ConversionSource;
+  /** When the result is dropped from this device (ms). */
+  expiresAt: number;
+  /** Shown when coming back from a failed or cancelled payment. */
+  error?: string;
+}
+
 export type ToastTone = "info" | "success" | "error";
 
 export interface Toast {
@@ -102,6 +123,7 @@ export interface AppState {
   passwordRequest: PasswordRequest | null;
   job: JobState | null;
   result: ResultState | null;
+  paywall: PaywallState | null;
   toasts: Toast[];
 }
 
@@ -130,6 +152,7 @@ export const useApp = create<AppState>()(() => ({
   passwordRequest: null,
   job: null,
   result: null,
+  paywall: null,
   toasts: [],
 }));
 
@@ -179,9 +202,8 @@ export function rotateItem(id: string, delta: 90 | -90) {
   });
 }
 
-const collator = new Intl.Collator("hu", { numeric: true, sensitivity: "base" });
-
 export function sortItems(by: "name-asc" | "name-desc" | "size-asc" | "size-desc") {
+  const collator = new Intl.Collator(INTL_LOCALE[runtimeLocale()], { numeric: true, sensitivity: "base" });
   const items = [...get().items];
   items.sort((a, b) => {
     switch (by) {
@@ -251,6 +273,10 @@ export function endJob() {
 
 export function setResult(result: ResultState | null) {
   set({ result });
+}
+
+export function setPaywall(paywall: PaywallState | null) {
+  set({ paywall });
 }
 
 export function setLoading(loading: LoadingState | null) {

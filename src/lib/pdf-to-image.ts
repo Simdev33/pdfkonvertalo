@@ -5,7 +5,8 @@ import { describeError } from "@/lib/converter";
 import { baseNameOf, padNumber, withJpegDpi, withPngDpi, type OutputFile } from "@/lib/files";
 import { canvasToBlob, openDocument, PasswordError, readPageInfo, releaseCanvas, renderPage, type PDFDocumentProxy } from "@/lib/pdf/pdfjs";
 import { createSession, getSession, setSession } from "@/lib/pdf/session";
-import { endJob, requestPassword, setLoading, setPdfDoc, setResult, startJob, toast, updateJob, useApp } from "@/lib/store";
+import { deliver } from "@/lib/deliver";
+import { endJob, requestPassword, setLoading, setPdfDoc, startJob, toast, updateJob, useApp } from "@/lib/store";
 import { fmt, plural } from "@/i18n/format";
 import { runtimeLocale, t } from "@/i18n/runtime";
 import { isAbortError, throwIfAborted, yieldToBrowser } from "@/lib/utils";
@@ -97,7 +98,7 @@ export async function runPdfToImages() {
       releaseCanvas(canvas);
       await yieldToBrowser();
     }
-    setResult({
+    await deliver({
       title: files.length === 1 ? text.resultOne : plural(runtimeLocale(), text.resultMany, files.length),
       files,
       archiveName: `${baseName}_${text.archiveSuffix}.zip`,

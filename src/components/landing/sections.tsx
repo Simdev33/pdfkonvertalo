@@ -1,7 +1,8 @@
 import { ChevronDown, Cpu, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { LOCALE_NAMES, LOCALES, pathFor, type Locale } from "@/i18n/config";
+import { LanguageLinks } from "@/components/language-links";
+import { pathFor, type Locale } from "@/i18n/config";
 import { SITE } from "@/i18n/dictionaries";
 import { fmt } from "@/i18n/format";
 import { site } from "@/lib/site";
@@ -29,7 +30,7 @@ export function Hero({
   children: ReactNode;
 }) {
   return (
-    <section className="relative mx-auto max-w-3xl px-5 pt-14 pb-16 text-center sm:pt-20">
+    <section id="start" className="relative mx-auto max-w-3xl scroll-mt-14 px-5 pt-14 pb-16 text-center sm:pt-20">
       <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-3 py-1 text-xs font-medium text-fg-muted shadow-sm backdrop-blur">
         <ShieldCheck className="size-3.5 text-success" />
         {badge}
@@ -150,20 +151,7 @@ export function Footer({ locale }: { locale: Locale }) {
             <Cpu className="size-3.5 shrink-0" /> {text.footerNote}
           </p>
         </div>
-        <nav aria-label={text.languages} className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs sm:justify-start">
-          {LOCALES.map((option) => (
-            <Link
-              key={option}
-              href={pathFor("converter", option)}
-              hrefLang={option}
-              lang={option}
-              aria-current={option === locale ? "true" : undefined}
-              className={option === locale ? "font-semibold text-fg-muted" : link}
-            >
-              {LOCALE_NAMES[option]}
-            </Link>
-          ))}
-        </nav>
+        <LanguageLinks locale={locale} label={text.languages} />
       </div>
     </footer>
   );

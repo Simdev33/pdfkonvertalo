@@ -5,8 +5,10 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import type { Locale } from "@/i18n/config";
+import { INTL_LOCALE, type Locale } from "@/i18n/config";
 import { SITE } from "@/i18n/dictionaries";
+import { fmt } from "@/i18n/format";
+import { priceVars } from "@/lib/plan";
 import { site } from "@/lib/site";
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -58,7 +60,7 @@ export async function renderOgImage(locale: Locale) {
           </div>
           <div style={{ fontSize: 40, fontWeight: 700 }}>{site.name}</div>
           <div style={{ marginLeft: "auto", padding: "8px 20px", borderRadius: 999, background: "rgba(60, 207, 120, 0.14)", color: "#7ee2a8", fontSize: 24 }}>
-            {meta.ogBadge}
+            {fmt(meta.ogBadge, priceVars(INTL_LOCALE[locale]))}
           </div>
         </div>
 
