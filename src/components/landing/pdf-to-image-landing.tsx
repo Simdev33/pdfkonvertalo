@@ -12,7 +12,7 @@ export function PdfToImageLanding({ locale }: { locale: Locale }) {
   return (
     <div className="relative overflow-x-clip">
       <Backdrop />
-      <Hero title={text.title} accent={text.accent} text={text.text} badge={sections.badge}>
+      <Hero title={text.title} accent={text.accent} text={text.text} badge={sections.badge} trust={sections.trust}>
         <PdfDropzone />
       </Hero>
       <section className="relative mx-auto max-w-6xl px-5 py-16">

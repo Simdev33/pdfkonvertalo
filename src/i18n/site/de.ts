@@ -150,6 +150,12 @@ export const de: SiteDict = {
 
   sections: {
     badge: "Ohne Upload · 100 % in Ihrem Browser",
+    trust: [
+      "256-Bit-Verschlüsselung",
+      "Dateien werden nach 1 Stunde automatisch gelöscht",
+      "100 % privat",
+      "DSGVO-konform",
+    ],
     privacyTitle: "Ihre Dateien bleiben bei Ihnen",
     privacyText:
       "Personalausweis, Gehaltsabrechnung, Vertrag, Familienfotos: So etwas sollte man nicht auf fremde Server hochladen. {site} wandelt Bilder, Textdateien und PDFs auf Ihrem eigenen Gerät um – deshalb ist es schnell und auch dann sicher, wenn Sie mit vertraulichen Unterlagen arbeiten. Nur für Word-, Excel- und PowerPoint-Dateien wird der Server benötigt: Diese wandelt ein Office-Programm in PDF um, danach werden sie sofort gelöscht.",

@@ -150,6 +150,12 @@ export const es: SiteDict = {
 
   sections: {
     badge: "Sin subir archivos · 100 % en tu navegador",
+    trust: [
+      "Cifrado de 256 bits",
+      "Archivos eliminados automáticamente tras 1 hora",
+      "100 % privado",
+      "Conforme al RGPD",
+    ],
     privacyTitle: "Tus archivos se quedan contigo",
     privacyText:
       "DNI, nóminas, contratos, fotos familiares: nada de esto debería subirse a servidores ajenos. {site} convierte las imágenes, los archivos de texto y los PDF en tu propio dispositivo, por eso es rápido y seguro incluso cuando trabajas con material confidencial. Solo los archivos de Word, Excel y PowerPoint necesitan el servidor: un programa ofimático los convierte a PDF y después se eliminan inmediatamente.",

@@ -150,6 +150,12 @@ export const fr: SiteDict = {
 
   sections: {
     badge: "Sans envoi de fichier · 100 % dans votre navigateur",
+    trust: [
+      "Chiffrement 256 bits",
+      "Fichiers supprimés automatiquement après 1 heure",
+      "100 % privé",
+      "Conforme au RGPD",
+    ],
     privacyTitle: "Vos fichiers restent chez vous",
     privacyText:
       "Carte d'identité, fiche de paie, contrat, photos de famille : ces documents n'ont rien à faire sur des serveurs inconnus. {site} convertit les images, les fichiers texte et les PDF sur votre propre appareil ; il est donc rapide, et sûr même lorsque vous travaillez sur des documents confidentiels. Seuls les fichiers Word, Excel et PowerPoint nécessitent le serveur : un logiciel de bureautique les convertit en PDF, puis ils sont immédiatement supprimés.",

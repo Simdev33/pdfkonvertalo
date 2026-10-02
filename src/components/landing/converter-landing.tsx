@@ -20,7 +20,7 @@ export function ConverterLanding({ locale }: { locale: Locale }) {
   return (
     <div className="relative overflow-x-clip">
       <Backdrop />
-      <Hero title={text.title} accent={text.accent} text={withPrices(text.text)} badge={text.badge}>
+      <Hero title={text.title} accent={text.accent} text={withPrices(text.text)} badge={text.badge} trust={sections.trust}>
         <ConverterDropzone />
         <ul className="mt-6 flex flex-wrap items-center justify-center gap-1.5" aria-label={text.formatsLabel}>
           {FORMATS.map((format) => (

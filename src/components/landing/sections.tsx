@@ -1,4 +1,4 @@
-import { ChevronDown, Cpu, ShieldCheck } from "lucide-react";
+import { ChevronDown, Cpu, EyeOff, Lock, ShieldCheck, Timer } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LanguageLinks } from "@/components/language-links";
@@ -16,17 +16,22 @@ export function Backdrop() {
   );
 }
 
+// In the order of the dictionary's `sections.trust`.
+const TRUST_ICONS = [Lock, Timer, EyeOff, ShieldCheck];
+
 export function Hero({
   title,
   accent,
   text,
   badge,
+  trust,
   children,
 }: {
   title: ReactNode;
   accent: ReactNode;
   text: ReactNode;
   badge: string;
+  trust: string[];
   children: ReactNode;
 }) {
   return (
@@ -41,6 +46,19 @@ export function Hero({
         <span className="bg-linear-to-r from-primary via-[#8b5cf6] to-[#ec4899] bg-clip-text text-transparent">{accent}</span>
       </h1>
       <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-pretty text-fg-muted sm:text-lg">{text}</p>
+      <ul className="mx-auto mt-7 grid w-fit max-w-full grid-cols-[auto_auto] gap-x-5 gap-y-3 text-left sm:gap-x-10">
+        {trust.map((label, index) => {
+          const Icon = TRUST_ICONS[index];
+          return (
+            <li key={label} className="flex items-center gap-2 text-[13px] leading-snug font-medium text-fg-muted">
+              <span className="grid size-6 shrink-0 place-items-center rounded-full bg-success-soft text-success">
+                <Icon className="size-3.5" strokeWidth={2.4} />
+              </span>
+              {label}
+            </li>
+          );
+        })}
+      </ul>
       <div className="mt-10 text-left">{children}</div>
     </section>
   );

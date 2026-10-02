@@ -150,6 +150,12 @@ export const en: SiteDict = {
 
   sections: {
     badge: "No uploads · 100% in your browser",
+    trust: [
+      "256-bit Encryption",
+      "Files automatically deleted after 1 hour",
+      "100% Private",
+      "GDPR Compliant",
+    ],
     privacyTitle: "Your files stay with you",
     privacyText:
       "ID cards, payslips, contracts, family photos: these shouldn't have to be uploaded to someone else's server. {site} converts images, text files and PDFs on your own device, so it is fast, and safe even when you work with confidential material. Only Word, Excel and PowerPoint files need the server: an office application converts them to PDF, and they are deleted immediately afterwards.",

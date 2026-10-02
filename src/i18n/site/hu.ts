@@ -153,6 +153,12 @@ export const hu = {
 
   sections: {
     badge: "Feltöltés nélkül · 100%-ban a böngésződben",
+    trust: [
+      "256 bites titkosítás",
+      "A fájlok 1 óra után automatikusan törlődnek",
+      "100%-ban privát",
+      "GDPR-kompatibilis",
+    ],
     privacyTitle: "A fájljaid nálad maradnak",
     privacyText:
       "Személyi igazolvány, bérpapír, szerződés, családi fotók: ezeket nem kellene idegen szerverekre feltölteni. A {site} a képeket, szöveges fájlokat és PDF-eket a saját eszközödön alakítja át, ezért gyors, és akkor is biztonságos, ha bizalmas anyaggal dolgozol. Egyedül a Word-, Excel- és PowerPoint-fájlokhoz kell a szerver: azokat egy irodai program alakítja PDF-fé, majd azonnal törlődnek.",
