@@ -58,7 +58,11 @@ export function LoginForm({
 
   const verify = (event: FormEvent) => {
     event.preventDefault();
-    void run(async () => onSuccess?.(await verifyLoginCode(code, locale)));
+    void run(async () => {
+      // Not `onSuccess?.(await …)`: without a callback that would skip the verification itself.
+      const account = await verifyLoginCode(code, locale);
+      onSuccess?.(account);
+    });
   };
 
   if (step === "email") {

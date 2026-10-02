@@ -2,11 +2,12 @@
 
 import { Check, CircleCheck, FileText, Lock, ShieldCheck, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LoginForm } from "@/components/account/login-form";
 import { LinkText } from "@/components/link-text";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/controls";
+import { cn } from "@/lib/utils";
 import { INTL_LOCALE, pathFor } from "@/i18n/config";
 import { fmt, plural } from "@/i18n/format";
 import { useI18n } from "@/i18n/provider";
@@ -154,43 +155,56 @@ function PreviewCard({ files }: { files: OutputFile[] }) {
   );
 }
 
-type Step = { kind: "email" } | { kind: "pay"; clientSecret: string; email: string } | { kind: "login"; email: string; codeSent: boolean; note?: string };
+type Step = { kind: "pay" } | { kind: "login"; email: string; codeSent: boolean; note?: string };
 
 function PaymentPanel({ paywall }: { paywall: PaywallState }) {
   const { locale, ui } = useI18n();
   const text = ui.paywall;
   const intl = INTL_LOCALE[locale];
   const accountEmail = useAccount((state) => state.email);
-  const [step, setStep] = useState<Step>({ kind: "email" });
+  const [step, setStep] = useState<Step>({ kind: "pay" });
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [email, setEmail] = useState(accountEmail ?? "");
+  const [emailWarning, setEmailWarning] = useState(false);
   const [consent, setConsent] = useState(false);
   const [consentWarning, setConsentWarning] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(paywall.error ?? null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const requested = useRef(false);
 
   const staticPrices: Prices = { today: formatMoney(PLAN.trialFeeCents, intl), monthly: formatMoney(PLAN.monthlyCents, intl) };
   const days = PLAN.trialDays;
+  const describe = (failure: unknown) => (failure instanceof Error ? failure.message : ui.common.unexpected);
 
-  const startCheckout = async (event: FormEvent) => {
-    event.preventDefault();
-    setBusy(true);
+  // The payment form shows right away: the Checkout Session is made with the page (once, even under StrictMode).
+  useEffect(() => {
+    if (requested.current || !stripeConfigured()) return;
+    requested.current = true;
+    api<{ clientSecret: string }>("/api/checkout", { body: { locale, returnPath: window.location.pathname } })
+      .then((session) => setClientSecret(session.clientSecret))
+      .catch((failure) => setError(failure instanceof Error ? failure.message : ui.common.unexpected));
+  }, [locale, ui.common.unexpected]);
+
+  const checkEmail = async (address: string) => {
     setError(null);
     try {
-      const { clientSecret } = await api<{ clientSecret: string }>("/api/checkout", {
-        body: { email: email.trim(), locale, returnPath: window.location.pathname },
-      });
-      setStep({ kind: "pay", clientSecret, email: email.trim() });
+      await api("/api/checkout/email", { body: { email: address, locale } });
+      return true;
     } catch (failure) {
       if (failure instanceof ApiError && failure.code === "alreadySubscribed") {
-        // Already paying with this address: log in instead of paying twice.
-        await requestLoginCode(email.trim(), locale).catch(() => undefined);
-        setStep({ kind: "login", email: email.trim(), codeSent: true, note: failure.message });
+        // Already paying with this address: sign in instead of paying twice.
+        await requestLoginCode(address, locale).catch(() => undefined);
+        setStep({ kind: "login", email: address, codeSent: true, note: failure.message });
       } else {
-        setError(failure instanceof Error ? failure.message : ui.common.unexpected);
+        setError(describe(failure));
       }
-    } finally {
-      setBusy(false);
+      return false;
     }
+  };
+
+  const emailMissing = () => {
+    setEmailWarning(true);
+    emailRef.current?.focus();
   };
 
   const unlocked = async () => {
@@ -206,15 +220,66 @@ function PaymentPanel({ paywall }: { paywall: PaywallState }) {
       await api("/api/checkout/complete", { body: { sessionId, locale } });
       await unlocked();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : ui.common.unexpected);
+      setError(describe(failure));
     }
   };
 
   const priceRow = (prices: Prices) => (
     <div className="flex items-baseline justify-between gap-4 border-y border-border py-5">
-      <span className="font-semibold">{fmt(text.priceLabel, { days })}</span>
+      <span className="font-semibold">{text.priceLabel}</span>
       <span className="text-3xl font-bold tracking-tight tabular-nums">{prices.today}</span>
     </div>
+  );
+
+  const header = (prices: Prices) => (
+    <>
+      {priceRow(prices)}
+      <label className="block space-y-1.5 pt-3">
+        <span className="text-sm font-medium">{text.email}</span>
+        <input
+          ref={emailRef}
+          type="email"
+          autoComplete="email"
+          placeholder={text.emailPlaceholder}
+          value={email}
+          aria-invalid={emailWarning}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setEmailWarning(false);
+          }}
+          className={cn(
+            "h-12 w-full rounded-xl bg-surface px-4 text-[15px] ring-1 ring-border-strong ring-inset outline-none placeholder:text-fg-subtle focus:ring-2 focus:ring-primary",
+            emailWarning && "ring-danger/60",
+          )}
+        />
+        <span className={cn("block text-xs", emailWarning ? "text-danger" : "text-fg-subtle")}>{emailWarning ? text.emailInvalid : text.emailHint}</span>
+      </label>
+      <label
+        className={cn(
+          "flex cursor-pointer items-start gap-3 rounded-xl p-3 text-sm leading-relaxed ring-1 ring-inset",
+          consentWarning && !consent ? "bg-danger-soft ring-danger/40" : "bg-surface ring-border",
+        )}
+      >
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(event) => {
+            setConsent(event.target.checked);
+            setConsentWarning(false);
+          }}
+          className="mt-0.5 size-4 shrink-0 accent-primary"
+        />
+        <span>
+          <LinkText
+            text={fmt(text.consent, { termsPath: pathFor("terms", locale), privacyPath: pathFor("privacy", locale) })}
+            className="font-medium text-primary underline underline-offset-2"
+            newTab
+          />
+        </span>
+      </label>
+      {consentWarning && !consent && <p className="text-sm text-danger">{text.consentNeeded}</p>}
+      <p className="pt-2 text-xs font-semibold tracking-wider text-fg-subtle uppercase">{text.methods}</p>
+    </>
   );
 
   const renewal = fmt(text.renewal, {
@@ -230,7 +295,7 @@ function PaymentPanel({ paywall }: { paywall: PaywallState }) {
     <div>
       <h2 className="text-3xl font-bold tracking-tight">{text.title}</h2>
       <p className="mt-5 text-sm text-fg-muted">
-        <span className="font-semibold text-fg">{fmt(text.includes, { days })}</span>
+        <span className="font-semibold text-fg">{text.includes}</span>
       </p>
       <ul className="mt-3 space-y-2.5">
         {text.features.map((feature) => (
@@ -242,84 +307,57 @@ function PaymentPanel({ paywall }: { paywall: PaywallState }) {
       </ul>
 
       <div className="mt-6">
-        {step.kind !== "pay" && priceRow(staticPrices)}
-
         {!stripeConfigured() ? (
-          <p className="mt-6 rounded-xl bg-danger-soft p-4 text-sm text-danger">{text.notConfigured}</p>
-        ) : step.kind === "email" ? (
-          <form onSubmit={startCheckout} className="mt-6 space-y-3">
-            <label className="block space-y-1.5">
-              <span className="text-sm font-medium">{text.email}</span>
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                placeholder={text.emailPlaceholder}
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="h-12 w-full rounded-xl bg-surface px-4 text-[15px] ring-1 ring-border-strong ring-inset outline-none placeholder:text-fg-subtle focus:ring-2 focus:ring-primary"
-              />
-              <span className="block text-xs text-fg-subtle">{text.emailHint}</span>
-            </label>
-            <Button type="submit" variant="primary" size="lg" className="h-12 w-full" disabled={busy || !email.trim()}>
-              {busy && <Spinner />}
-              {text.continue}
-            </Button>
-            <p className="text-center text-sm text-fg-muted">
-              {text.haveAccount}{" "}
-              <button type="button" className="font-medium text-primary hover:underline" onClick={() => setStep({ kind: "login", email: email.trim(), codeSent: false })}>
-                {text.login}
-              </button>
-            </p>
-          </form>
-        ) : step.kind === "pay" ? (
-          <div className="space-y-4">
-            <StripeCheckout
-              clientSecret={step.clientSecret}
-              consent={consent}
-              onConsentMissing={() => setConsentWarning(true)}
-              onPaid={(sessionId) => void paid(sessionId)}
-              renderPrices={(prices) => (
+          <>
+            {priceRow(staticPrices)}
+            <p className="mt-6 rounded-xl bg-danger-soft p-4 text-sm text-danger">{text.notConfigured}</p>
+          </>
+        ) : (
+          <>
+            {/* Stays mounted while signing in, so "Back to payment" returns to the same checkout. */}
+            <div hidden={step.kind !== "pay"}>
+              {clientSecret ? (
+                <StripeCheckout
+                  clientSecret={clientSecret}
+                  consent={consent}
+                  onConsentMissing={() => setConsentWarning(true)}
+                  email={email}
+                  onEmailMissing={emailMissing}
+                  checkEmail={checkEmail}
+                  onPaid={(sessionId) => void paid(sessionId)}
+                  renderPrices={header}
+                />
+              ) : (
                 <>
-                  {priceRow(prices)}
-                  <div className="flex items-center justify-between gap-3 pt-2 text-sm">
-                    <span className="truncate text-fg-muted">{step.email}</span>
-                    <button type="button" className="shrink-0 font-medium text-primary hover:underline" onClick={() => setStep({ kind: "email" })}>
-                      {text.change}
-                    </button>
-                  </div>
-                  <label className={`flex cursor-pointer items-start gap-3 rounded-xl p-3 text-sm leading-relaxed ring-1 ring-inset ${consentWarning && !consent ? "bg-danger-soft ring-danger/40" : "bg-surface ring-border"}`}>
-                    <input
-                      type="checkbox"
-                      checked={consent}
-                      onChange={(event) => {
-                        setConsent(event.target.checked);
-                        setConsentWarning(false);
-                      }}
-                      className="mt-0.5 size-4 shrink-0 accent-primary"
-                    />
-                    <span>
-                      <LinkText
-                        text={fmt(text.consent, { termsPath: pathFor("terms", locale), privacyPath: pathFor("privacy", locale) })}
-                        className="font-medium text-primary underline underline-offset-2"
-                        newTab
-                      />
-                    </span>
-                  </label>
-                  {consentWarning && !consent && <p className="text-sm text-danger">{text.consentNeeded}</p>}
-                  <p className="pt-2 text-xs font-semibold tracking-wider text-fg-subtle uppercase">{text.methods}</p>
+                  {priceRow(staticPrices)}
+                  {!error && (
+                    <p className="flex items-center gap-2 py-6 text-sm text-fg-muted">
+                      <Spinner /> {text.loading}
+                    </p>
+                  )}
                 </>
               )}
-            />
-          </div>
-        ) : (
-          <div className="mt-6 space-y-3">
-            {step.note && <p className="rounded-xl bg-primary-soft p-3 text-sm text-primary-soft-fg">{step.note}</p>}
-            <LoginForm initialEmail={step.email} codeSent={step.codeSent} onSuccess={() => void unlocked()} />
-            <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => setStep({ kind: "email" })}>
-              {text.backToPay}
-            </button>
-          </div>
+              <p className="mt-4 text-center text-sm text-fg-muted">
+                {text.haveAccount}{" "}
+                <button type="button" className="font-medium text-primary hover:underline" onClick={() => setStep({ kind: "login", email: email.trim(), codeSent: false })}>
+                  {text.login}
+                </button>
+              </p>
+            </div>
+
+            {step.kind === "login" && (
+              <>
+                {priceRow(staticPrices)}
+                <div className="mt-6 space-y-3">
+                  {step.note && <p className="rounded-xl bg-primary-soft p-3 text-sm text-primary-soft-fg">{step.note}</p>}
+                  <LoginForm initialEmail={step.email} codeSent={step.codeSent} onSuccess={() => void unlocked()} />
+                  <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => setStep({ kind: "pay" })}>
+                    {text.backToPay}
+                  </button>
+                </div>
+              </>
+            )}
+          </>
         )}
 
         {error && <p className="mt-4 text-sm text-danger">{error}</p>}

@@ -15,7 +15,8 @@ export { PLAN };
 /**
  * The Stripe account is shared with other sites (e.g. DoneSignIn), so only
  * objects of this app count: subscriptions tagged with this app (or on our
- * product) and customers that are not tagged for another app.
+ * product), and customers tagged with it – Stripe creates them at payment,
+ * /api/checkout/complete tags them afterwards.
  */
 export const APP = "pdf-konvertalo";
 const PRODUCT_ID = "pdf_konvertalo";
@@ -152,19 +153,26 @@ export async function accessFor(customer: string): Promise<Access> {
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 export const isEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254;
 
+const ours = (customer: Stripe.Customer) => customer.metadata?.app === APP;
+
 /** Customers with this e-mail, the one with access (or the newest) first. */
 export async function customersFor(email: string) {
   const { data } = await stripe().customers.list({ email: normalizeEmail(email), limit: 20 });
-  // Customers created by another app (metadata.app set to something else) are not ours.
-  const mine = data.filter((customer) => !customer.deleted && (!customer.metadata?.app || customer.metadata.app === APP));
-  const withAccess = await Promise.all(mine.map(async (customer) => ({ customer, access: await accessFor(customer.id) })));
-  return withAccess.sort((a, b) => Number(b.access.active) - Number(a.access.active) || b.customer.created - a.customer.created);
+  // Customers tagged for another app (metadata.app set to something else) are not ours.
+  const candidates = data.filter((customer) => !customer.deleted && (ours(customer) || !customer.metadata?.app));
+  const withAccess = await Promise.all(candidates.map(async (customer) => ({ customer, access: await accessFor(customer.id) })));
+  // Stripe creates an untagged customer at payment; it is ours only if it has one of our subscriptions.
+  const mine = withAccess.filter(({ customer, access }) => ours(customer) || access.status !== "none");
+  return mine.sort((a, b) => Number(b.access.active) - Number(a.access.active) || b.customer.created - a.customer.created);
 }
 
-/** A new customer tagged with this app, so other sites on the Stripe account can tell it apart. */
-export async function createCustomer(email: string, locale: string) {
-  const customer = await stripe().customers.create({ email: normalizeEmail(email), preferred_locales: [locale], metadata: { app: APP } });
-  return customer.id;
+/** Tags the customer Stripe created at payment, so the other sites on the account leave it alone. */
+export async function claimCustomer(customer: Stripe.Customer | Stripe.DeletedCustomer, locale?: string) {
+  if (customer.deleted || ours(customer)) return;
+  await stripe().customers.update(customer.id, {
+    metadata: { app: APP },
+    ...(locale && !customer.preferred_locales?.length ? { preferred_locales: [locale] } : {}),
+  });
 }
 
 /* ------------------------------ customer portal --------------------------- */

@@ -1,9 +1,9 @@
 "use client";
 
 import { CheckoutElementsProvider, ExpressCheckoutElement, PaymentElement, useCheckoutElements } from "@stripe/react-stripe-js/checkout";
-import { loadStripe, type Appearance, type Stripe, type StripeConstructorOptions } from "@stripe/stripe-js";
-import { CreditCard, Lock } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { loadStripe, type Appearance, type Stripe, type StripeConstructorOptions, type StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
+import { Lock } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/controls";
 import { INTL_LOCALE, type Locale } from "@/i18n/config";
@@ -50,51 +50,54 @@ export interface Prices {
   monthly: string | null;
 }
 
-/**
- * The payment methods of one Checkout Session: express wallet buttons
- * (Apple Pay, Google Pay, PayPal, Link) and the card form behind a button, as
- * on the design. `consent` must be given before any of them can be used.
- */
-export function StripeCheckout({
-  clientSecret,
-  consent,
-  onConsentMissing,
-  onPaid,
-  renderPrices,
-}: {
-  clientSecret: string;
+/** A format check is enough here – the server and Stripe check the address again. */
+export const looksLikeEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+
+interface CheckoutProps {
   consent: boolean;
   onConsentMissing: () => void;
+  /** From the parent's field; the card payment is made with it. */
+  email: string;
+  onEmailMissing: () => void;
+  /** Before paying: false when this address must not pay (already subscribed) or the check failed. */
+  checkEmail: (email: string) => Promise<boolean>;
   onPaid: (sessionId: string) => void;
   renderPrices: (prices: Prices) => ReactNode;
-}) {
+}
+
+/**
+ * The payment methods of one Checkout Session: express wallet buttons
+ * (Apple Pay, Google Pay, PayPal, Link) and the card form, open from the
+ * start. `consent` must be given before any of them can be used.
+ */
+export function StripeCheckout({ clientSecret, ...props }: CheckoutProps & { clientSecret: string }) {
   const { locale } = useI18n();
   const stripe = useMemo(() => stripeFor(locale), [locale]);
   const options = useMemo(() => ({ clientSecret, elementsOptions: { appearance: appearance() } }), [clientSecret]);
   return (
     <CheckoutElementsProvider stripe={stripe} options={options}>
-      <PaymentMethods consent={consent} onConsentMissing={onConsentMissing} onPaid={onPaid} renderPrices={renderPrices} />
+      <PaymentMethods {...props} />
     </CheckoutElementsProvider>
   );
 }
 
-function PaymentMethods({
-  consent,
-  onConsentMissing,
-  onPaid,
-  renderPrices,
-}: {
-  consent: boolean;
-  onConsentMissing: () => void;
-  onPaid: (sessionId: string) => void;
-  renderPrices: (prices: Prices) => ReactNode;
-}) {
+function PaymentMethods({ consent, onConsentMissing, email, onEmailMissing, checkEmail, onPaid, renderPrices }: CheckoutProps) {
   const state = useCheckoutElements();
   const { locale, ui } = useI18n();
   const text = ui.paywall;
-  const [cardOpen, setCardOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Stripe gets the typed address too, so Link's save option shows up filled in.
+  const checkout = state.type === "success" ? state.checkout : null;
+  useEffect(() => {
+    const address = email.trim();
+    if (!checkout || !looksLikeEmail(address)) return;
+    const timer = setTimeout(() => {
+      void checkout.updateEmail(address).then((result) => result.type === "error" && console.warn("[checkout] updateEmail:", result.error.message));
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [checkout, email]);
 
   if (state.type === "loading") {
     return (
@@ -103,9 +106,8 @@ function PaymentMethods({
       </p>
     );
   }
-  if (state.type === "error") return <p className="py-4 text-sm text-danger">{state.error.message}</p>;
+  if (state.type === "error" || !checkout) return <p className="py-4 text-sm text-danger">{state.type === "error" ? state.error.message : null}</p>;
 
-  const { checkout } = state;
   // Stripe's own strings read "1,00 EUR" in some locales; its minor units are formatted like the rest of the page.
   const money = (minor: number) =>
     new Intl.NumberFormat(INTL_LOCALE[locale], { style: "currency", currency: checkout.currency.toUpperCase(), currencyDisplay: "narrowSymbol" }).format(
@@ -116,20 +118,36 @@ function PaymentMethods({
     monthly: checkout.recurring ? money(checkout.recurring.dueNext.total.minorUnitsAmount) : null,
   };
 
-  const confirm = async (extra: Parameters<typeof checkout.confirm>[0] = {}) => {
-    if (!consent) {
-      onConsentMissing();
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    const result = await checkout.confirm({ redirect: "if_required", ...extra });
+  const finish = async (confirmation: Parameters<typeof checkout.confirm>[0]) => {
+    const result = await checkout.confirm({ redirect: "if_required", ...confirmation });
     if (result.type === "error") {
       setError(result.error.message);
       setBusy(false);
       return;
     }
     onPaid(result.session.id);
+  };
+
+  const payByCard = async () => {
+    if (!consent) return onConsentMissing();
+    const address = email.trim();
+    if (!looksLikeEmail(address)) return onEmailMissing();
+    setBusy(true);
+    setError(null);
+    if (!(await checkEmail(address))) return setBusy(false);
+    await finish({ email: address });
+  };
+
+  const payExpress = async (event: StripeExpressCheckoutElementConfirmEvent) => {
+    // With a wallet the address comes from the wallet.
+    const address = event.billingDetails?.email ?? email.trim();
+    setBusy(true);
+    setError(null);
+    if (looksLikeEmail(address) && !(await checkEmail(address))) {
+      event.paymentFailed({ reason: "fail" });
+      return setBusy(false);
+    }
+    await finish({ expressCheckoutConfirmEvent: event });
   };
 
   return (
@@ -148,22 +166,15 @@ function PaymentMethods({
               paymentMethodOrder: ["apple_pay", "google_pay", "paypal", "link"],
               paymentMethods: undefined,
             }}
-            onConfirm={(event) => void confirm({ expressCheckoutConfirmEvent: event })}
+            onConfirm={(event) => void payExpress(event)}
           />
-          {cardOpen ? (
-            <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
-              <PaymentElement options={{ layout: "tabs" }} />
-              <Button variant="primary" size="lg" className="w-full" disabled={busy} onClick={() => void confirm()}>
-                {busy ? <Spinner /> : <Lock />}
-                {fmt(text.pay, { amount: prices.today })}
-              </Button>
-            </div>
-          ) : (
-            <Button variant="primary" size="lg" className="h-12 w-full" onClick={() => setCardOpen(true)}>
-              <CreditCard />
-              {text.card}
+          <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+            <PaymentElement options={{ layout: "tabs" }} />
+            <Button variant="primary" size="lg" className="h-12 w-full" disabled={busy} onClick={() => void payByCard()}>
+              {busy ? <Spinner /> : <Lock />}
+              {fmt(text.pay, { amount: prices.today })}
             </Button>
-          )}
+          </div>
         </div>
         {!consent && <button type="button" aria-label={text.consentNeeded} className="absolute inset-0 cursor-not-allowed" onClick={onConsentMissing} />}
       </div>

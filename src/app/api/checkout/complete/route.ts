@@ -1,5 +1,5 @@
 import { fail, json, localeOf, readBody, text } from "@/lib/server/api";
-import { accessFor, forgetAccess, stripe } from "@/lib/server/billing";
+import { accessFor, APP, claimCustomer, forgetAccess, stripe } from "@/lib/server/billing";
 import { setSession } from "@/lib/server/session";
 
 const MAX_AGE_SECONDS = 24 * 60 * 60;
@@ -12,13 +12,14 @@ export async function POST(request: Request) {
   if (!id.startsWith("cs_")) return fail(locale, "paymentIncomplete", 400);
 
   try {
-    const session = await stripe().checkout.sessions.retrieve(id);
+    const session = await stripe().checkout.sessions.retrieve(id, { expand: ["customer"] });
     const customer = typeof session.customer === "string" ? session.customer : session.customer?.id;
     const email = session.customer_details?.email ?? session.customer_email;
     const fresh = Date.now() / 1000 - session.created < MAX_AGE_SECONDS;
-    if (session.status !== "complete" || !customer || !email || !fresh || session.metadata?.app !== "pdf-konvertalo") {
+    if (session.status !== "complete" || !customer || !email || !fresh || session.metadata?.app !== APP) {
       return fail(locale, "paymentIncomplete", 402);
     }
+    if (session.customer && typeof session.customer !== "string") await claimCustomer(session.customer, session.metadata?.locale);
     forgetAccess(customer);
     await setSession({ customer, email });
     return json({ signedIn: true, email, access: await accessFor(customer) });
